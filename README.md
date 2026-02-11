@@ -2,26 +2,11 @@
 
 A [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) server that enables AI assistants to create, read, and manipulate [draw.io](https://www.drawio.com/) diagrams. Works seamlessly with the [VS Code draw.io extension](https://marketplace.visualstudio.com/items?itemName=hediet.vscode-drawio) for real-time visual feedback.
 
-[<img src="https://img.shields.io/badge/VS_Code-Install_MCP_Server-0098FF?style=flat-square&logo=visualstudiocode&logoColor=white" alt="Install in VS Code">](https://insiders.vscode.dev/redirect/mcp/install?name=drawio-mcp&config=%7B%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22github%3Aabossard%2Fdrawio-mcp%22%5D%7D)
+## Install
 
-## Quick Start
+[<img src="https://img.shields.io/badge/Install_in_VS_Code-0098FF?style=for-the-badge&logo=visualstudiocode&logoColor=white" alt="Install in VS Code">](https://insiders.vscode.dev/redirect/mcp/install?name=drawio-mcp&config=%7B%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22github%3Aabossard%2Fdrawio-mcp%22%5D%7D)
 
-### VS Code — one click
-
-Click the badge above, or open the command palette (<kbd>Cmd</kbd>+<kbd>Shift</kbd>+<kbd>P</kbd>) and run:
-
-```
-MCP: Add Server...
-```
-
-Choose **Command (stdio)** and enter:
-
-- **Command:** `npx`
-- **Args:** `-y github:abossard/drawio-mcp`
-
-### VS Code — project config (recommended for teams)
-
-Add `.vscode/mcp.json` to your repo so every contributor gets it automatically:
+Or copy this into `.vscode/mcp.json` in your project:
 
 ```json
 {
@@ -34,9 +19,14 @@ Add `.vscode/mcp.json` to your repo so every contributor gets it automatically:
 }
 ```
 
-### VS Code — user-wide
+That's it. VS Code downloads, builds, and starts the server automatically.
 
-To enable across all your projects, add to **User** `settings.json` (<kbd>Cmd</kbd>+<kbd>Shift</kbd>+<kbd>P</kbd> → *Preferences: Open User Settings (JSON)*):
+<details>
+<summary><strong>Other install methods</strong></summary>
+
+#### VS Code — user-wide (all projects)
+
+Add to **User** `settings.json` (<kbd>Cmd</kbd>+<kbd>Shift</kbd>+<kbd>P</kbd> → *Preferences: Open User Settings (JSON)*):
 
 ```json
 {
@@ -51,7 +41,7 @@ To enable across all your projects, add to **User** `settings.json` (<kbd>Cmd</k
 }
 ```
 
-### Claude Desktop
+#### Claude Desktop
 
 Add to `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) or `%APPDATA%\Claude\claude_desktop_config.json` (Windows):
 
@@ -66,12 +56,14 @@ Add to `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS)
 }
 ```
 
-### Environment Variables
+#### Environment Variables
 
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `DRAWIO_MCP_SIDECAR_PORT` | `9219` | WebSocket port for companion extension |
 | `DRAWIO_MCP_NO_SIDECAR` | `0` | Set to `1` to disable the WebSocket sidecar |
+
+</details>
 
 ## Features
 
@@ -234,8 +226,6 @@ drawio-mcp/
 
 ## Development
 
-### Setup
-
 ```bash
 git clone https://github.com/abossard/drawio-mcp.git
 cd drawio-mcp
@@ -243,9 +233,7 @@ npm install
 npm test
 ```
 
-### Use your local build in VS Code
-
-Point VS Code at your local checkout instead of the npm package. Add to `.vscode/mcp.json` in the project where you want to use diagrams:
+To use your local build in VS Code, add to `.vscode/mcp.json` in any project:
 
 ```json
 {
@@ -258,24 +246,15 @@ Point VS Code at your local checkout instead of the npm package. Add to `.vscode
 }
 ```
 
-Then iterate:
-
-```bash
-npm run dev          # rebuild on every save (tsc --watch)
-```
-
-VS Code will restart the MCP server automatically when the built file changes.
-
-### Commands
+Run `npm run dev` to rebuild on every save — VS Code restarts the MCP server automatically.
 
 | Command | Description |
 |---------|-------------|
 | `npm run build` | Compile TypeScript once |
 | `npm run dev` | Watch mode — rebuild on save |
-| `npm test` | Run all 57 tests |
+| `npm test` | Run all tests |
 | `npm run test:watch` | Re-run tests on save |
 | `npm start` | Start the MCP server |
-| `DRAWIO_MCP_NO_SIDECAR=1 npm start` | Start without WebSocket sidecar |
 
 ## License
 
