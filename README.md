@@ -1,12 +1,22 @@
 # drawio-mcp
 
-A [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) server that enables AI assistants to create, read, and manipulate [draw.io](https://www.drawio.com/) diagrams. Works seamlessly with the [VS Code draw.io extension](https://marketplace.visualstudio.com/items?itemName=hediet.vscode-drawio) for real-time visual feedback.
+MCP server that lets AI assistants create, read, and edit [draw.io](https://www.drawio.com/) diagrams. Pair it with the [VS Code draw.io extension](https://marketplace.visualstudio.com/items?itemName=hediet.vscode-drawio) and watch diagrams update in real time as the AI works.
+
+[![Install in VS Code](https://img.shields.io/badge/VS_Code-Install_Server-0098FF?style=flat-square&logo=visualstudiocode&logoColor=white)](https://insiders.vscode.dev/redirect/mcp/install?name=drawio&config=%7B%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22github%3Aabossard%2Fdrawio-mcp%22%5D%7D) [![Install in VS Code Insiders](https://img.shields.io/badge/VS_Code_Insiders-Install_Server-24bfa5?style=flat-square&logo=visualstudiocode&logoColor=white)](https://insiders.vscode.dev/redirect/mcp/install?name=drawio&config=%7B%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22github%3Aabossard%2Fdrawio-mcp%22%5D%7D&quality=insiders)
+
+### What can it do?
+
+- **Create diagrams** — flowcharts, architecture diagrams, sequence diagrams from natural language
+- **Read & understand** — parse existing `.drawio` files and describe their structure
+- **Edit precisely** — add/remove/update individual nodes and edges
+- **Undo mistakes** — full history with undo/redo, independent of the editor's Ctrl+Z
+- **Live preview** — changes appear instantly in the VS Code draw.io editor, no reload
+
+---
 
 ## Install
 
-[<img src="https://img.shields.io/badge/Install_in_VS_Code-0098FF?style=for-the-badge&logo=visualstudiocode&logoColor=white" alt="Install in VS Code">](https://insiders.vscode.dev/redirect/mcp/install?name=drawio-mcp&config=%7B%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22github%3Aabossard%2Fdrawio-mcp%22%5D%7D)
-
-Or copy this into `.vscode/mcp.json` in your project:
+Click one of the badges above, or add this to `.vscode/mcp.json` in your project:
 
 ```json
 {
@@ -19,29 +29,10 @@ Or copy this into `.vscode/mcp.json` in your project:
 }
 ```
 
-That's it. VS Code downloads, builds, and starts the server automatically.
+> **Tip:** Commit this file to your repo — every contributor gets diagram support automatically.
 
 <details>
-<summary><strong>Other install methods</strong></summary>
-
-#### VS Code — user-wide (all projects)
-
-Add to **User** `settings.json` (<kbd>Cmd</kbd>+<kbd>Shift</kbd>+<kbd>P</kbd> → *Preferences: Open User Settings (JSON)*):
-
-```json
-{
-  "mcp": {
-    "servers": {
-      "drawio": {
-        "command": "npx",
-        "args": ["-y", "github:abossard/drawio-mcp"]
-      }
-    }
-  }
-}
-```
-
-#### Claude Desktop
+<summary><strong>Claude Desktop</strong></summary>
 
 Add to `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) or `%APPDATA%\Claude\claude_desktop_config.json` (Windows):
 
@@ -56,173 +47,126 @@ Add to `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS)
 }
 ```
 
-#### Environment Variables
+</details>
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `DRAWIO_MCP_SIDECAR_PORT` | `9219` | WebSocket port for companion extension |
-| `DRAWIO_MCP_NO_SIDECAR` | `0` | Set to `1` to disable the WebSocket sidecar |
+<details>
+<summary><strong>VS Code user settings (all projects)</strong></summary>
+
+Add to your **User** `settings.json` (<kbd>Cmd</kbd>+<kbd>Shift</kbd>+<kbd>P</kbd> → *Preferences: Open User Settings (JSON)*):
+
+```json
+{
+  "mcp": {
+    "servers": {
+      "drawio": {
+        "command": "npx",
+        "args": ["-y", "github:abossard/drawio-mcp"]
+      }
+    }
+  }
+}
+```
 
 </details>
 
-## Features
+---
 
-### 🛠️ Diagram Tools (16 total)
+## Usage
 
-| Tool | Description |
-|------|-------------|
-| `create_diagram` | Create a new `.drawio` file with an empty diagram |
-| `read_diagram` | Parse a diagram and return structured overview of all pages, nodes, and edges |
-| `add_node` | Add a shape/vertex with label, position, size, and style |
-| `add_edge` | Add a connection between two nodes with optional label and style |
-| `update_element` | Modify an existing node or edge (label, style, position, size) |
-| `remove_element` | Remove a node or edge by ID |
-| `add_page` | Add a new page/tab to a multi-page diagram |
-| `get_diagram_styles` | List all available predefined shape and edge styles |
+Just ask your AI assistant:
 
-### 🕐 History & Undo Tools
+> *"Create a flowchart for a user login process in `docs/login-flow.drawio`"*
 
-| Tool | Description |
-|------|-------------|
-| `undo_last_operation` | Undo the last MCP operation, restoring the file to its previous state |
-| `redo_last_operation` | Redo the last undone operation |
-| `get_change_history` | List recent operations with timestamps and affected elements |
+> *"Read `architecture.drawio` and describe the components"*
 
-Every mutating operation (add/update/remove) creates an automatic snapshot. Undo/redo works independently of the draw.io editor's own Ctrl+Z — both work simultaneously.
+> *"Add a Redis cache node between the API and Database, then highlight it"*
 
-### ✨ Animation & Visual Feedback Tools
+> *"Undo the last change"*
+
+The server also ships with prompt templates — try asking to *"use the architecture prompt"* or *"use the flowchart prompt"*.
+
+---
+
+## Tools
+
+### Diagram manipulation
 
 | Tool | Description |
 |------|-------------|
-| `highlight_element` | Temporarily flash elements with a colored highlight effect |
-| `show_ai_cursor` | Show an AI cursor at a position in the diagram† |
-| `show_ai_selection` | Highlight cells as being AI-selected/edited† |
-| `show_status` | Display a status message in the draw.io status bar† |
-| `show_spinner` | Show/hide a loading spinner in the editor† |
+| `create_diagram` | Create a new `.drawio` file |
+| `read_diagram` | Parse and return all pages, nodes, and edges |
+| `add_node` | Add a shape with label, position, size, and style |
+| `add_edge` | Connect two nodes with optional label and style |
+| `update_element` | Modify label, style, position, or size |
+| `remove_element` | Delete a node or edge by ID |
+| `add_page` | Add a new page/tab |
+| `get_diagram_styles` | List all predefined styles |
 
-_† Requires the companion VS Code extension (see below). `highlight_element` works with or without it._
+### History
 
-### 📋 Resources
+| Tool | Description |
+|------|-------------|
+| `undo_last_operation` | Restore file to previous state |
+| `redo_last_operation` | Re-apply last undone change |
+| `get_change_history` | List recent operations |
 
-| Resource | URI | Description |
-|----------|-----|-------------|
-| Diagram Files | `drawio://files` | Lists all `.drawio` and `.dio` files in the working directory |
+### Visual feedback
 
-### 💬 Prompts
+| Tool | Description |
+|------|-------------|
+| `highlight_element` | Flash elements with a colored highlight |
+| `show_ai_cursor` | Show AI cursor position † |
+| `show_ai_selection` | Highlight AI-selected cells † |
+| `show_status` | Status bar message † |
+| `show_spinner` | Loading spinner † |
 
-| Prompt | Description |
-|--------|-------------|
-| `flowchart` | Generate a flowchart from a process description |
-| `architecture` | Generate an architecture diagram from system components |
-| `sequence-diagram` | Generate a sequence diagram from interactions |
+_† Requires the [companion extension](#companion-extension-optional)._
 
-### 🎨 Predefined Styles
+### Predefined styles
 
-**Shapes:** `rectangle`, `roundedRectangle`, `ellipse`, `diamond`, `parallelogram`, `hexagon`, `triangle`, `cylinder`, `cloud`, `document`, `process`, `star`, `callout`
+Use the `shape` parameter in `add_node` or `edgeStyle` in `add_edge`:
 
-**UML:** `actor`, `component`, `package`, `interface`
+| Category | Styles |
+|----------|--------|
+| **Shapes** | `rectangle` `roundedRectangle` `ellipse` `diamond` `parallelogram` `hexagon` `triangle` `cylinder` `cloud` `document` `process` `star` `callout` |
+| **Flowchart** | `start` `end` `decision` `processStep` `inputOutput` |
+| **Architecture** | `server` `database` `firewall` `user` `container` |
+| **UML** | `actor` `component` `package` `interface` |
+| **Colors** | `blue` `green` `red` `yellow` `purple` `orange` `gray` |
+| **Edges** | `straight` `orthogonal` `curved` `entityRelation` `dashed` `dotted` `bidirectional` `noArrow` |
 
-**Flowchart:** `start` (green), `end` (red), `decision` (yellow), `processStep` (blue), `inputOutput` (purple)
+---
 
-**Architecture:** `server`, `database`, `firewall`, `user`, `container`
-
-**Colors:** `blue`, `green`, `red`, `yellow`, `purple`, `orange`, `gray`
-
-**Edges:** `straight`, `orthogonal`, `curved`, `entityRelation`, `arrow`, `openArrow`, `dashed`, `dotted`, `bidirectional`, `noArrow`
-
-## How Live Editing Works
+## How it works
 
 ```
-MCP Server ──(writes .drawio)──> File System
-                                      ↓ (file watcher)
-VS Code draw.io Extension ──(mergeXmlLike)──> draw.io Webview
+AI Assistant ──(MCP)──> drawio-mcp server ──(writes XML)──> .drawio file
+                                                                  │
+                                              VS Code draw.io extension
+                                              detects change & live-merges
+                                                        │
+                                                   draw.io webview
+                                                  (instant update ✨)
 ```
 
-When the MCP server writes to a `.drawio` file, the VS Code draw.io extension **automatically detects the change** and uses its `merge` action to diff and patch the live editor. This means:
+- ✅ No page reload — changes merge seamlessly
+- ✅ Undo works — each write becomes one Ctrl+Z step
+- ✅ User selection preserved — the merge doesn't disrupt anything
 
-- ✅ **No page reload** — changes appear seamlessly
-- ✅ **Undo works** — each MCP write becomes one Ctrl+Z step in the editor
-- ✅ **User selection preserved** — the merge doesn't disrupt what the user is doing
+---
 
-## Companion VS Code Extension (Optional)
+## Companion Extension (Optional)
 
-For advanced features (AI presence overlays, status messages, spinners), install the companion extension:
+For AI cursor overlays, cell highlighting, and status messages, install the companion VS Code extension:
 
 ```bash
 cd vscode-drawio-mcp-bridge
-npm install
-npm run build
+npm install && npm run build
 ```
 
-Then install it in VS Code (F1 → "Developer: Install Extension from Location...").
+Then in VS Code: <kbd>F1</kbd> → *"Developer: Install Extension from Location..."* → select the `vscode-drawio-mcp-bridge` folder.
 
-The companion extension:
-- Connects to the MCP server's WebSocket sidecar (port 9219)
-- Injects a draw.io plugin for AI cursor/selection overlays
-- Uses the same protocol as VS Code Live Share for presence display
-- Shows colored highlights around cells the AI is editing
-
-### Architecture with Companion Extension
-
-```
-┌────────────────────────────────────────────────────┐
-│  VS Code                                           │
-│                                                    │
-│  ┌──────────────────┐   ┌───────────────────────┐ │
-│  │ draw.io Extension │   │ drawio-mcp-bridge     │ │
-│  │ (hediet)          │   │ Extension             │ │
-│  │ ┌──────────────┐ │   │                       │ │
-│  │ │draw.io iframe │◄├───┤ • AI cursor overlays  │ │
-│  │ │              │ │   │ • Cell highlighting   │ │
-│  │ └──────────────┘ │   │ • Status messages     │ │
-│  └──────────────────┘   └──────────┬────────────┘ │
-│                                    │ WebSocket     │
-│                         ┌──────────▼────────────┐  │
-│                         │ drawio-mcp Server      │  │
-│                         │ • 16 MCP tools         │  │
-│                         │ • History/undo system  │  │
-│                         │ • File watcher         │  │
-│                         │ • WS sidecar (:9219)   │  │
-│                         └────────────────────────┘  │
-└────────────────────────────────────────────────────┘
-```
-
-## Usage Examples
-
-### Create a flowchart
-> "Create a flowchart for a user login process in `docs/login-flow.drawio`"
-
-### Read an existing diagram
-> "Read `architecture.drawio` and describe the components"
-
-### Modify with visual feedback
-> "Add a Redis cache node between the API and Database in `architecture.drawio` and highlight it"
-
-### Use a prompt template
-> "Use the architecture prompt to create a diagram of a microservices system"
-
-### Undo changes
-> "Undo the last change to the diagram"
-
-## Project Structure
-
-```
-drawio-mcp/
-├── src/
-│   ├── index.ts          # MCP server, all 16 tools, resources, prompts
-│   ├── drawio.ts         # Draw.io XML parser, manipulator, history, file watcher
-│   ├── styles.ts         # 30+ predefined shape and edge styles
-│   └── sidecar.ts        # WebSocket server for companion extension
-├── vscode-drawio-mcp-bridge/
-│   └── src/
-│       ├── extension.ts      # VS Code extension entry point
-│       ├── bridge-client.ts  # WebSocket client to MCP sidecar
-│       └── plugin-provider.ts # draw.io plugin injection (AI overlays)
-├── build/                # Compiled output
-├── package.json
-├── tsconfig.json
-└── RESEARCH.md           # Deep research on draw.io APIs
-```
+---
 
 ## Development
 
@@ -233,12 +177,12 @@ npm install
 npm test
 ```
 
-To use your local build in VS Code, add to `.vscode/mcp.json` in any project:
+Point VS Code at your local build — add to `.vscode/mcp.json` in any project:
 
 ```json
 {
   "servers": {
-    "drawio": {
+    "drawio-dev": {
       "command": "node",
       "args": ["/absolute/path/to/drawio-mcp/build/index.js"]
     }
@@ -246,15 +190,23 @@ To use your local build in VS Code, add to `.vscode/mcp.json` in any project:
 }
 ```
 
-Run `npm run dev` to rebuild on every save — VS Code restarts the MCP server automatically.
+Run `npm run dev` for watch mode — VS Code auto-restarts the server on each rebuild.
 
 | Command | Description |
 |---------|-------------|
-| `npm run build` | Compile TypeScript once |
-| `npm run dev` | Watch mode — rebuild on save |
-| `npm test` | Run all tests |
-| `npm run test:watch` | Re-run tests on save |
-| `npm start` | Start the MCP server |
+| `npm run build` | Compile TypeScript |
+| `npm run dev` | Watch mode (rebuild on save) |
+| `npm test` | Run tests |
+| `npm run test:watch` | Watch mode for tests |
+
+### Environment Variables
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `DRAWIO_MCP_SIDECAR_PORT` | `9219` | WebSocket port for companion extension |
+| `DRAWIO_MCP_NO_SIDECAR` | `1` | Set to `1` to disable the WebSocket sidecar |
+
+---
 
 ## License
 
