@@ -2,11 +2,26 @@
 
 A [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) server that enables AI assistants to create, read, and manipulate [draw.io](https://www.drawio.com/) diagrams. Works seamlessly with the [VS Code draw.io extension](https://marketplace.visualstudio.com/items?itemName=hediet.vscode-drawio) for real-time visual feedback.
 
+[<img src="https://img.shields.io/badge/VS_Code-Install_MCP_Server-0098FF?style=flat-square&logo=visualstudiocode&logoColor=white" alt="Install in VS Code">](https://insiders.vscode.dev/redirect/mcp/install?name=drawio-mcp&config=%7B%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22github%3Aabossard%2Fdrawio-mcp%22%5D%7D)
+
 ## Quick Start
 
-### VS Code — one-click setup
+### VS Code — one click
 
-Add this to your project's `.vscode/mcp.json` (create the file if it doesn't exist):
+Click the badge above, or open the command palette (<kbd>Cmd</kbd>+<kbd>Shift</kbd>+<kbd>P</kbd>) and run:
+
+```
+MCP: Add Server...
+```
+
+Choose **Command (stdio)** and enter:
+
+- **Command:** `npx`
+- **Args:** `-y github:abossard/drawio-mcp`
+
+### VS Code — project config (recommended for teams)
+
+Add `.vscode/mcp.json` to your repo so every contributor gets it automatically:
 
 ```json
 {
@@ -19,13 +34,9 @@ Add this to your project's `.vscode/mcp.json` (create the file if it doesn't exi
 }
 ```
 
-That's it — VS Code will download, build, and run the server automatically when an MCP client (GitHub Copilot, Cline, Continue, etc.) connects.
+### VS Code — user-wide
 
-> **Tip:** Add `.vscode/mcp.json` to your repo so every contributor gets draw.io diagram support out of the box.
-
-### VS Code — user-wide setup
-
-To make it available across all projects, add to your **User** `settings.json` (<kbd>Cmd</kbd>+<kbd>Shift</kbd>+<kbd>P</kbd> → *Preferences: Open User Settings (JSON)*):
+To enable across all your projects, add to **User** `settings.json` (<kbd>Cmd</kbd>+<kbd>Shift</kbd>+<kbd>P</kbd> → *Preferences: Open User Settings (JSON)*):
 
 ```json
 {
@@ -54,16 +65,6 @@ Add to `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS)
   }
 }
 ```
-
-### Global install (optional)
-
-If you prefer not to use `npx`:
-
-```bash
-npm install -g github:abossard/drawio-mcp
-```
-
-Then use `"command": "drawio-mcp"` (no `args`) in any configuration above.
 
 ### Environment Variables
 
@@ -233,26 +234,48 @@ drawio-mcp/
 
 ## Development
 
+### Setup
+
 ```bash
-# Clone and install
-git clone <repo-url> && cd drawio-mcp
+git clone https://github.com/abossard/drawio-mcp.git
+cd drawio-mcp
 npm install
-
-# Build
-npm run build
-
-# Watch mode
-npm run dev
-
-# Run tests
 npm test
-
-# Run MCP server locally
-npm start
-
-# Run without sidecar
-DRAWIO_MCP_NO_SIDECAR=1 npm start
 ```
+
+### Use your local build in VS Code
+
+Point VS Code at your local checkout instead of the npm package. Add to `.vscode/mcp.json` in the project where you want to use diagrams:
+
+```json
+{
+  "servers": {
+    "drawio": {
+      "command": "node",
+      "args": ["/absolute/path/to/drawio-mcp/build/index.js"]
+    }
+  }
+}
+```
+
+Then iterate:
+
+```bash
+npm run dev          # rebuild on every save (tsc --watch)
+```
+
+VS Code will restart the MCP server automatically when the built file changes.
+
+### Commands
+
+| Command | Description |
+|---------|-------------|
+| `npm run build` | Compile TypeScript once |
+| `npm run dev` | Watch mode — rebuild on save |
+| `npm test` | Run all 57 tests |
+| `npm run test:watch` | Re-run tests on save |
+| `npm start` | Start the MCP server |
+| `DRAWIO_MCP_NO_SIDECAR=1 npm start` | Start without WebSocket sidecar |
 
 ## License
 
