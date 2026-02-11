@@ -1,0 +1,61 @@
+{
+  "name": "drawio-mcp-bridge",
+  "displayName": "Draw.io MCP Bridge",
+  "description": "Companion extension for drawio-mcp: adds AI presence overlays, cursor tracking, and status messages to the draw.io editor",
+  "version": "0.1.0",
+  "publisher": "drawio-mcp",
+  "engines": { "vscode": "^1.80.0" },
+  "categories": ["Other"],
+  "activationEvents": ["onLanguage:drawio", "onCustomEditor:hediet.vscode-drawio"],
+  "main": "./out/extension.js",
+  "isDrawioExtension": true,
+  "contributes": {
+    "commands": [
+      {
+        "command": "drawio-mcp-bridge.connect",
+        "title": "Draw.io MCP: Connect to Server"
+      },
+      {
+        "command": "drawio-mcp-bridge.disconnect",
+        "title": "Draw.io MCP: Disconnect from Server"
+      }
+    ],
+    "configuration": {
+      "title": "Draw.io MCP Bridge",
+      "properties": {
+        "drawioMcpBridge.websocketPort": {
+          "type": "number",
+          "default": 9219,
+          "description": "WebSocket port for MCP server sidecar"
+        },
+        "drawioMcpBridge.autoConnect": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically connect to MCP sidecar when a .drawio file is opened"
+        },
+        "drawioMcpBridge.aiColor": {
+          "type": "string",
+          "default": "#D13913",
+          "description": "Color for AI presence overlays (hex)"
+        },
+        "drawioMcpBridge.aiLabel": {
+          "type": "string",
+          "default": "🤖 AI",
+          "description": "Label shown next to AI cursor"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc --watch"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.80.0",
+    "@types/ws": "^8.5.10",
+    "typescript": "^5.8.3"
+  },
+  "dependencies": {
+    "ws": "^8.18.0"
+  }
+}

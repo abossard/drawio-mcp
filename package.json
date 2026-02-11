@@ -1,0 +1,43 @@
+{
+  "name": "drawio-mcp",
+  "version": "1.0.0",
+  "description": "MCP server for creating, reading, and updating draw.io diagrams",
+  "type": "module",
+  "main": "build/index.js",
+  "bin": {
+    "drawio-mcp": "build/index.js"
+  },
+  "files": [
+    "build",
+    "LICENSE",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "start": "node build/index.js",
+    "dev": "tsc --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "prepare": "tsc",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "mcp",
+    "drawio",
+    "diagram",
+    "model-context-protocol"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.12.1",
+    "fast-xml-parser": "^5.2.3",
+    "ws": "^8.19.0",
+    "zod": "^3.25.67"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.21",
+    "@types/ws": "^8.18.1",
+    "typescript": "^5.8.3",
+    "vitest": "^4.0.18"
+  }
+}
