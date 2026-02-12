@@ -3,7 +3,7 @@ import { WebSocketServer, WebSocket } from 'ws';
 const DEFAULT_PORT = 9219;
 
 export interface SidecarMessage {
-  type: 'cursor' | 'selection' | 'highlight' | 'unhighlight' | 'status' | 'spinner';
+  type: 'cursor' | 'selection' | 'highlight' | 'unhighlight' | 'status' | 'spinner' | 'layout';
   data: any;
 }
 

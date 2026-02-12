@@ -73,6 +73,9 @@ export class DrawioPluginProvider {
             case 'spinner':
                 showSpinner(msg.data);
                 break;
+            case 'layout':
+                applyLayout(msg.data);
+                break;
         }
     }
 
@@ -139,6 +142,62 @@ export class DrawioPluginProvider {
             message: data.message,
             show: data.show
         }), '*');
+    }
+
+    function applyLayout(data) {
+        var _ui = window._mcpUi;
+        if (!_ui || !_ui.editor || !_ui.editor.graph) return;
+        var graph = _ui.editor.graph;
+        var layoutType = data.layout || 'hierarchical';
+        var layoutObj = null;
+
+        switch (layoutType) {
+            case 'hierarchical':
+                layoutObj = new mxHierarchicalLayout(graph, data.direction === 'horizontal' ? mxConstants.DIRECTION_WEST : mxConstants.DIRECTION_NORTH);
+                if (data.spacing) layoutObj.intraCellSpacing = data.spacing;
+                if (data.interRankSpacing) layoutObj.interRankCellSpacing = data.interRankSpacing;
+                break;
+            case 'organic':
+                layoutObj = new mxFastOrganicLayout(graph);
+                if (data.spacing) layoutObj.forceConstant = data.spacing;
+                break;
+            case 'circle':
+                layoutObj = new mxCircleLayout(graph);
+                if (data.spacing) layoutObj.radius = data.spacing;
+                break;
+            case 'tree':
+                layoutObj = new mxCompactTreeLayout(graph, data.direction === 'horizontal');
+                if (data.spacing) layoutObj.levelDistance = data.spacing;
+                if (data.interRankSpacing) layoutObj.nodeDistance = data.interRankSpacing;
+                break;
+            case 'radialTree':
+                layoutObj = new mxRadialTreeLayout(graph);
+                if (data.spacing) layoutObj.levelDistance = data.spacing;
+                break;
+            default:
+                layoutObj = new mxHierarchicalLayout(graph);
+        }
+
+        if (layoutObj) {
+            var parent = graph.getDefaultParent();
+            graph.getModel().beginUpdate();
+            try {
+                layoutObj.execute(parent);
+            } finally {
+                graph.getModel().endUpdate();
+            }
+            // Trigger autosave so VS Code extension writes updated XML back to disk
+            if (_ui.actions && _ui.actions.get('save')) {
+                _ui.actions.get('save').funct();
+            }
+        }
+
+        if (ws && ws.readyState === 1) {
+            ws.send(JSON.stringify({
+                type: 'layoutComplete',
+                layout: layoutType
+            }));
+        }
     }
 
     // Track user selection and send to sidecar

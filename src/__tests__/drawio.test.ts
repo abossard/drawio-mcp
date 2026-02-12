@@ -17,6 +17,10 @@ import {
   undoLastOperation,
   redoLastOperation,
   unwatchAll,
+  batchAddElements,
+  DiagramValidationError,
+  checkLayout,
+  analyzePageLayout,
 } from '../drawio.js';
 
 let tmpDir: string;
@@ -554,5 +558,362 @@ describe('roundtrip integration', () => {
     info = await readDiagram(filePath);
     expect(info.totalNodes).toBe(1);
     expect(info.pages[0].nodes[0].id).toBe('a');
+  });
+});
+
+// ── Validation ────────────────────────────────────────────────────────
+
+describe('validation', () => {
+  describe('addNode validation', () => {
+    it('should reject unknown shape name', async () => {
+      const filePath = path.join(tmpDir, 'test.drawio');
+      await createDiagramFile(filePath);
+      await expect(
+        addNode(filePath, { label: 'Bad', shape: 'nonexistent_shape' })
+      ).rejects.toThrow(DiagramValidationError);
+      await expect(
+        addNode(filePath, { label: 'Bad', shape: 'nonexistent_shape' })
+      ).rejects.toThrow(/Unknown shape/);
+    });
+
+    it('should reject duplicate node ID', async () => {
+      const filePath = path.join(tmpDir, 'test.drawio');
+      await createDiagramFile(filePath);
+      await addNode(filePath, { label: 'First', id: 'dup' });
+      await expect(
+        addNode(filePath, { label: 'Second', id: 'dup' })
+      ).rejects.toThrow(DiagramValidationError);
+      await expect(
+        addNode(filePath, { label: 'Second', id: 'dup' })
+      ).rejects.toThrow(/Duplicate ID/);
+    });
+
+    it('should allow valid shape names', async () => {
+      const filePath = path.join(tmpDir, 'test.drawio');
+      await createDiagramFile(filePath);
+      await expect(
+        addNode(filePath, { label: 'OK', shape: 'diamond', id: 'ok1' })
+      ).resolves.toBeDefined();
+    });
+  });
+
+  describe('addEdge validation', () => {
+    it('should reject edge with non-existent source', async () => {
+      const filePath = path.join(tmpDir, 'test.drawio');
+      await createDiagramFile(filePath);
+      await addNode(filePath, { label: 'B', id: 'b' });
+      await expect(
+        addEdge(filePath, { sourceId: 'ghost', targetId: 'b' })
+      ).rejects.toThrow(DiagramValidationError);
+      await expect(
+        addEdge(filePath, { sourceId: 'ghost', targetId: 'b' })
+      ).rejects.toThrow(/sourceId "ghost" not found/);
+    });
+
+    it('should reject edge with non-existent target', async () => {
+      const filePath = path.join(tmpDir, 'test.drawio');
+      await createDiagramFile(filePath);
+      await addNode(filePath, { label: 'A', id: 'a' });
+      await expect(
+        addEdge(filePath, { sourceId: 'a', targetId: 'ghost' })
+      ).rejects.toThrow(DiagramValidationError);
+      await expect(
+        addEdge(filePath, { sourceId: 'a', targetId: 'ghost' })
+      ).rejects.toThrow(/targetId "ghost" not found/);
+    });
+
+    it('should reject edge with both source and target missing', async () => {
+      const filePath = path.join(tmpDir, 'test.drawio');
+      await createDiagramFile(filePath);
+      await expect(
+        addEdge(filePath, { sourceId: 'x', targetId: 'y' })
+      ).rejects.toThrow(/sourceId "x" and targetId "y" not found/);
+    });
+
+    it('should reject unknown edgeStyle', async () => {
+      const filePath = path.join(tmpDir, 'test.drawio');
+      await createDiagramFile(filePath);
+      await addNode(filePath, { label: 'A', id: 'a' });
+      await addNode(filePath, { label: 'B', id: 'b' });
+      await expect(
+        addEdge(filePath, { sourceId: 'a', targetId: 'b', edgeStyle: 'zigzag' })
+      ).rejects.toThrow(DiagramValidationError);
+      await expect(
+        addEdge(filePath, { sourceId: 'a', targetId: 'b', edgeStyle: 'zigzag' })
+      ).rejects.toThrow(/Unknown edgeStyle/);
+    });
+
+    it('should reject duplicate edge ID', async () => {
+      const filePath = path.join(tmpDir, 'test.drawio');
+      await createDiagramFile(filePath);
+      await addNode(filePath, { label: 'A', id: 'a' });
+      await addNode(filePath, { label: 'B', id: 'b' });
+      await addEdge(filePath, { sourceId: 'a', targetId: 'b', id: 'e1' });
+      await expect(
+        addEdge(filePath, { sourceId: 'a', targetId: 'b', id: 'e1' })
+      ).rejects.toThrow(/Duplicate ID/);
+    });
+
+    it('should not modify diagram on validation failure', async () => {
+      const filePath = path.join(tmpDir, 'test.drawio');
+      await createDiagramFile(filePath);
+      await addNode(filePath, { label: 'A', id: 'a' });
+
+      try {
+        await addEdge(filePath, { sourceId: 'a', targetId: 'ghost' });
+      } catch { /* expected */ }
+
+      const info = await readDiagram(filePath);
+      expect(info.totalEdges).toBe(0); // no edge was added
+    });
+  });
+
+  describe('batchAddElements validation', () => {
+    it('should reject batch with invalid shape', async () => {
+      const filePath = path.join(tmpDir, 'test.drawio');
+      await createDiagramFile(filePath);
+      await expect(
+        batchAddElements(filePath, {
+          nodes: [{ label: 'Bad', shape: 'nope', id: 'n1' }],
+        })
+      ).rejects.toThrow(/Unknown shape/);
+    });
+
+    it('should reject batch with duplicate node IDs within batch', async () => {
+      const filePath = path.join(tmpDir, 'test.drawio');
+      await createDiagramFile(filePath);
+      await expect(
+        batchAddElements(filePath, {
+          nodes: [
+            { label: 'A', id: 'dup' },
+            { label: 'B', id: 'dup' },
+          ],
+        })
+      ).rejects.toThrow(/Duplicate ID "dup" within batch/);
+    });
+
+    it('should reject batch with node ID conflicting with existing', async () => {
+      const filePath = path.join(tmpDir, 'test.drawio');
+      await createDiagramFile(filePath);
+      await addNode(filePath, { label: 'Existing', id: 'exists' });
+      await expect(
+        batchAddElements(filePath, {
+          nodes: [{ label: 'Conflict', id: 'exists' }],
+        })
+      ).rejects.toThrow(/Duplicate ID "exists"/);
+    });
+
+    it('should reject batch edge referencing non-existent node', async () => {
+      const filePath = path.join(tmpDir, 'test.drawio');
+      await createDiagramFile(filePath);
+      await expect(
+        batchAddElements(filePath, {
+          nodes: [{ label: 'A', id: 'a' }],
+          edges: [{ sourceId: 'a', targetId: 'ghost' }],
+        })
+      ).rejects.toThrow(/targetId "ghost" not found/);
+    });
+
+    it('should allow batch edges referencing nodes in the same batch', async () => {
+      const filePath = path.join(tmpDir, 'test.drawio');
+      await createDiagramFile(filePath);
+      const result = await batchAddElements(filePath, {
+        nodes: [
+          { label: 'A', id: 'a' },
+          { label: 'B', id: 'b' },
+        ],
+        edges: [{ sourceId: 'a', targetId: 'b', id: 'e1' }],
+      });
+      expect(result.nodeIds).toHaveLength(2);
+      expect(result.edgeIds).toHaveLength(1);
+
+      const info = await readDiagram(filePath);
+      expect(info.totalNodes).toBe(2);
+      expect(info.totalEdges).toBe(1);
+    });
+
+    it('should allow batch edges referencing pre-existing nodes', async () => {
+      const filePath = path.join(tmpDir, 'test.drawio');
+      await createDiagramFile(filePath);
+      await addNode(filePath, { label: 'Pre', id: 'pre' });
+
+      const result = await batchAddElements(filePath, {
+        nodes: [{ label: 'New', id: 'new' }],
+        edges: [{ sourceId: 'pre', targetId: 'new', id: 'e1' }],
+      });
+      expect(result.edgeIds).toHaveLength(1);
+    });
+
+    it('should reject invalid edgeStyle in batch', async () => {
+      const filePath = path.join(tmpDir, 'test.drawio');
+      await createDiagramFile(filePath);
+      await expect(
+        batchAddElements(filePath, {
+          nodes: [
+            { label: 'A', id: 'a' },
+            { label: 'B', id: 'b' },
+          ],
+          edges: [{ sourceId: 'a', targetId: 'b', edgeStyle: 'badstyle' }],
+        })
+      ).rejects.toThrow(/Unknown edgeStyle/);
+    });
+
+    it('should not modify diagram on batch validation failure', async () => {
+      const filePath = path.join(tmpDir, 'test.drawio');
+      await createDiagramFile(filePath);
+
+      try {
+        await batchAddElements(filePath, {
+          nodes: [{ label: 'A', id: 'a' }],
+          edges: [{ sourceId: 'a', targetId: 'ghost' }],
+        });
+      } catch { /* expected */ }
+
+      const info = await readDiagram(filePath);
+      expect(info.totalNodes).toBe(0); // nothing was written
+      expect(info.totalEdges).toBe(0);
+    });
+
+    it('should reject duplicate edge ID conflicting with node ID in batch', async () => {
+      const filePath = path.join(tmpDir, 'test.drawio');
+      await createDiagramFile(filePath);
+      await expect(
+        batchAddElements(filePath, {
+          nodes: [
+            { label: 'A', id: 'shared' },
+            { label: 'B', id: 'b' },
+          ],
+          edges: [{ sourceId: 'shared', targetId: 'b', id: 'shared' }],
+        })
+      ).rejects.toThrow(/Duplicate ID "shared" within batch/);
+    });
+  });
+
+  describe('connection point validation', () => {
+    it('should accept valid exitPoint on addEdge', async () => {
+      const filePath = path.join(tmpDir, 'test.drawio');
+      await createDiagramFile(filePath);
+      await addNode(filePath, { label: 'A', id: 'a' });
+      await addNode(filePath, { label: 'B', id: 'b' });
+      const result = await addEdge(filePath, {
+        sourceId: 'a', targetId: 'b', exitPoint: 'right', entryPoint: 'left',
+      });
+      expect(result.id).toBeTruthy();
+    });
+
+    it('should reject invalid exitPoint on addEdge', async () => {
+      const filePath = path.join(tmpDir, 'test.drawio');
+      await createDiagramFile(filePath);
+      await addNode(filePath, { label: 'A', id: 'a' });
+      await addNode(filePath, { label: 'B', id: 'b' });
+      await expect(
+        addEdge(filePath, { sourceId: 'a', targetId: 'b', exitPoint: 'nowhere' })
+      ).rejects.toThrow(DiagramValidationError);
+      await expect(
+        addEdge(filePath, { sourceId: 'a', targetId: 'b', exitPoint: 'nowhere' })
+      ).rejects.toThrow(/Unknown exitPoint "nowhere"/);
+    });
+
+    it('should reject invalid entryPoint on addEdge', async () => {
+      const filePath = path.join(tmpDir, 'test.drawio');
+      await createDiagramFile(filePath);
+      await addNode(filePath, { label: 'A', id: 'a' });
+      await addNode(filePath, { label: 'B', id: 'b' });
+      await expect(
+        addEdge(filePath, { sourceId: 'a', targetId: 'b', entryPoint: 'invalid' })
+      ).rejects.toThrow(/Unknown entryPoint "invalid"/);
+    });
+
+    it('should apply connection point styles to XML', async () => {
+      const filePath = path.join(tmpDir, 'test.drawio');
+      await createDiagramFile(filePath);
+      await addNode(filePath, { label: 'A', id: 'a' });
+      await addNode(filePath, { label: 'B', id: 'b' });
+      await addEdge(filePath, {
+        sourceId: 'a', targetId: 'b', id: 'e1',
+        exitPoint: 'right', entryPoint: 'left',
+      });
+      const xml = await fs.readFile(filePath, 'utf8');
+      expect(xml).toContain('exitX=1');
+      expect(xml).toContain('exitY=0.5');
+      expect(xml).toContain('entryX=0');
+      expect(xml).toContain('entryY=0.5');
+    });
+
+    it('should accept valid connection points in batch edges', async () => {
+      const filePath = path.join(tmpDir, 'test.drawio');
+      await createDiagramFile(filePath);
+      const result = await batchAddElements(filePath, {
+        nodes: [
+          { label: 'A', id: 'a' },
+          { label: 'B', id: 'b' },
+        ],
+        edges: [{
+          sourceId: 'a', targetId: 'b', id: 'e1',
+          exitPoint: 'bottom', entryPoint: 'top',
+        }],
+      });
+      expect(result.edgeIds).toHaveLength(1);
+      const xml = await fs.readFile(filePath, 'utf8');
+      expect(xml).toContain('exitX=0.5');
+      expect(xml).toContain('exitY=1');
+      expect(xml).toContain('entryX=0.5');
+      expect(xml).toContain('entryY=0');
+    });
+
+    it('should reject invalid connection points in batch edges', async () => {
+      const filePath = path.join(tmpDir, 'test.drawio');
+      await createDiagramFile(filePath);
+      await expect(
+        batchAddElements(filePath, {
+          nodes: [
+            { label: 'A', id: 'a' },
+            { label: 'B', id: 'b' },
+          ],
+          edges: [{
+            sourceId: 'a', targetId: 'b',
+            exitPoint: 'badPoint',
+          }],
+        })
+      ).rejects.toThrow(/Unknown exitPoint "badPoint"/);
+    });
+  });
+
+  describe('new edge styles', () => {
+    it('should accept all new edge style names', async () => {
+      const filePath = path.join(tmpDir, 'test.drawio');
+      await createDiagramFile(filePath);
+      await addNode(filePath, { label: 'A', id: 'a' });
+      await addNode(filePath, { label: 'B', id: 'b' });
+
+      const newStyles = [
+        'orthogonalSharp', 'isometric', 'orthogonalDashed',
+        'curvedDashed', 'orthogonalBidirectional', 'curvedBidirectional',
+        'orthogonalNoArrow',
+      ];
+
+      for (const style of newStyles) {
+        const result = await addEdge(filePath, {
+          sourceId: 'a', targetId: 'b', edgeStyle: style,
+        });
+        expect(result.id).toBeTruthy();
+      }
+
+      const info = await readDiagram(filePath);
+      expect(info.totalEdges).toBe(newStyles.length);
+    });
+
+    it('should include labelBackgroundColor in all edge styles', async () => {
+      const filePath = path.join(tmpDir, 'test.drawio');
+      await createDiagramFile(filePath);
+      await addNode(filePath, { label: 'A', id: 'a' });
+      await addNode(filePath, { label: 'B', id: 'b' });
+      await addEdge(filePath, {
+        sourceId: 'a', targetId: 'b', id: 'e1',
+        edgeStyle: 'curved', label: 'Test Label',
+      });
+      const xml = await fs.readFile(filePath, 'utf8');
+      expect(xml).toContain('labelBackgroundColor');
+    });
   });
 });

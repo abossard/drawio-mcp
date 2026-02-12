@@ -56,8 +56,9 @@ describe('EDGE_STYLES', () => {
     }
   });
 
-  it('straight style should be empty string', () => {
-    expect(EDGE_STYLES.straight).toBe('');
+  it('straight style should only contain label base styling', () => {
+    expect(EDGE_STYLES.straight).toContain('labelBackgroundColor');
+    expect(EDGE_STYLES.straight).not.toContain('edgeStyle=');
   });
 });
 

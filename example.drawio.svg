@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="drawio-mcp" modified="2026-02-11T23:51:07.343Z" agent="drawio-mcp" version="1.0.0" type="device">
+  <diagram id="Ojh4o5m2NVYNUMtimLfl" name="Architecture">
+    <mxGraphModel dx="1422" dy="762" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+              <mxCell id="user_dev" value="Developer" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;" vertex="1" parent="1">
+          <mxGeometry x="100" y="40" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="ai_assistant" value="AI Assistant (MCP Client)" style="ellipse;shape=cloud;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="500" y="40" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="vs_code_container" value="VS Code Extension Host" style="rounded=1;whiteSpace=wrap;html=1;dashed=1;dashPattern=5 5;fillColor=none;strokeColor=#666666;fontSize=14;fontStyle=1;verticalAlign=top;spacingTop=5;" vertex="1" parent="1">
+          <mxGeometry x="20" y="120" width="360" height="300" as="geometry" />
+        </mxCell>
+        <mxCell id="backend_container" value="Local MCP Server" style="rounded=1;whiteSpace=wrap;html=1;dashed=1;dashPattern=5 5;fillColor=none;strokeColor=#666666;fontSize=14;fontStyle=1;verticalAlign=top;spacingTop=5;" vertex="1" parent="1">
+          <mxGeometry x="380" y="260" width="360" height="200" as="geometry" />
+        </mxCell>
+        <mxCell id="vscode_drawio_extension" value="VS Code draw.io Extension" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="100" y="190" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="drawio_webview_plugin" value="draw.io Webview + Plugin" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="300" y="190" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="bridge_client" value="Bridge Client (WS)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="300" y="340" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="sidecar_ws" value="Sidecar WS (9219)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1">
+          <mxGeometry x="500" y="340" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="mcp_server" value="drawio-mcp Server" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="700" y="340" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="diagram_file" value=".drawio File (Filesystem)" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="500" y="490" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="tUKv3eg4VToIhFaNnEZD" value="edit/view diagrams" style="edgeStyle=orthogonalEdgeStyle;" edge="1" parent="1" source="user_dev" target="vscode_drawio_extension">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="g2aVrEcZf2HNiik8rKat" value="MCP (stdio)" style="edgeStyle=orthogonalEdgeStyle;" edge="1" parent="1" source="ai_assistant" target="mcp_server">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="UFRLq35JFMGRLDXGRJfN" value="render, plugin inject" style="edgeStyle=orthogonalEdgeStyle;" edge="1" parent="1" source="vscode_drawio_extension" target="drawio_webview_plugin">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="Nh2HvNR3CvTtzEiCJvBk" value="user selection/cursor (WS /drawio)" style="edgeStyle=orthogonalEdgeStyle;" edge="1" parent="1" source="drawio_webview_plugin" target="sidecar_ws">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="wqzRDlBoQv9IoydcydWc" value="overlay, status, highlight" style="edgeStyle=orthogonalEdgeStyle;" edge="1" parent="1" source="sidecar_ws" target="drawio_webview_plugin">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="kS1b2OWGxMNjIxAXh95N" value="connect (WS)" style="edgeStyle=orthogonalEdgeStyle;" edge="1" parent="1" source="bridge_client" target="sidecar_ws">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="MAH1dNirucPKaoNjeUOm" value="status, selection" style="edgeStyle=orthogonalEdgeStyle;" edge="1" parent="1" source="sidecar_ws" target="bridge_client">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="IT58AT1DK3p1MsBZjQNI" value="overlay commands" style="edgeStyle=orthogonalEdgeStyle;" edge="1" parent="1" source="mcp_server" target="sidecar_ws">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="rQdfiFHsxnDRtllOfeFe" value="read/write XML" style="edgeStyle=orthogonalEdgeStyle;" edge="1" parent="1" source="mcp_server" target="diagram_file">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+</root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

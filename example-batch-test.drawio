@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="drawio-mcp" modified="2026-02-12T06:10:18.629Z" agent="drawio-mcp" version="1.0.0" type="device">
+  <diagram id="Un65tC8Za58oaiVll6dO" name="Architecture">
+    <mxGraphModel dx="1422" dy="762" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+              <mxCell id="developer" value="Developer" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;" vertex="1" parent="1">
+          <mxGeometry x="100" y="20" width="80" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="ai-client" value="AI Assistant
+(MCP Client)" style="ellipse;shape=cloud;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="480" y="20" width="160" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="vscode-host" value="VS Code Extension Host" style="rounded=1;whiteSpace=wrap;html=1;dashed=1;dashPattern=5 5;fillColor=none;strokeColor=#666666;fontSize=14;fontStyle=1;verticalAlign=top;spacingTop=5;" vertex="1" parent="1">
+          <mxGeometry x="0" y="140" width="420" height="280" as="geometry" />
+        </mxCell>
+        <mxCell id="mcp-container" value="Local MCP Server" style="rounded=1;whiteSpace=wrap;html=1;dashed=1;dashPattern=5 5;fillColor=none;strokeColor=#666666;fontSize=14;fontStyle=1;verticalAlign=top;spacingTop=5;" vertex="1" parent="1">
+          <mxGeometry x="440" y="260" width="520" height="200" as="geometry" />
+        </mxCell>
+        <mxCell id="drawio-ext" value="VS Code draw.io
+Extension" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="40" y="200" width="160" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="drawio-webview" value="draw.io Webview
++ Plugin" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="240" y="200" width="160" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="bridge-client" value="Bridge Client
+(WebSocket)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="240" y="340" width="160" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="sidecar" value="Sidecar WS
+(port 9219)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1">
+          <mxGeometry x="480" y="340" width="160" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="mcp-server" value="drawio-mcp
+Server" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="800" y="340" width="140" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="fs-files" value=".drawio Files
+(Filesystem)" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="680" y="480" width="160" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="e-dev-ext" value="edit/view diagrams" style="edgeStyle=orthogonalEdgeStyle;rounded=1;fontSize=11;fontFamily=Helvetica;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="developer" target="drawio-ext">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-ai-mcp" value="MCP (stdio)" style="edgeStyle=orthogonalEdgeStyle;rounded=1;fontSize=11;fontFamily=Helvetica;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="ai-client" target="mcp-server">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-ext-web" value="render, plugin inject" style="edgeStyle=orthogonalEdgeStyle;rounded=1;fontSize=11;fontFamily=Helvetica;labelBackgroundColor=#ffffff;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="drawio-ext" target="drawio-webview">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-web-ws" value="user events (WS /drawio)" style="curved=1;fontSize=11;fontFamily=Helvetica;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.25;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="drawio-webview" target="sidecar">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-ws-web" value="overlay, highlight" style="curved=1;dashed=1;fontSize=11;fontFamily=Helvetica;labelBackgroundColor=#ffffff;exitX=0.75;exitY=0;exitDx=0;exitDy=0;entryX=1;entryY=1;entryDx=0;entryDy=0;" edge="1" parent="1" source="sidecar" target="drawio-webview">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-bridge-ws" value="connect (WS)" style="edgeStyle=orthogonalEdgeStyle;rounded=1;fontSize=11;fontFamily=Helvetica;labelBackgroundColor=#ffffff;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="bridge-client" target="sidecar">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-ws-bridge" value="status, selection" style="edgeStyle=orthogonalEdgeStyle;rounded=1;dashed=1;fontSize=11;fontFamily=Helvetica;labelBackgroundColor=#ffffff;exitX=0;exitY=0.75;exitDx=0;exitDy=0;entryX=1;entryY=0.75;entryDx=0;entryDy=0;" edge="1" parent="1" source="sidecar" target="bridge-client">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-mcp-ws" value="overlay commands" style="edgeStyle=orthogonalEdgeStyle;rounded=1;fontSize=11;fontFamily=Helvetica;labelBackgroundColor=#ffffff;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="mcp-server" target="sidecar">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-mcp-fs" value="read/write XML" style="edgeStyle=orthogonalEdgeStyle;rounded=1;fontSize=11;fontFamily=Helvetica;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="mcp-server" target="fs-files">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+</root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

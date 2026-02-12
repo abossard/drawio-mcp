@@ -2,7 +2,7 @@ import WebSocket from 'ws';
 import { EventEmitter } from 'events';
 
 export interface SidecarMessage {
-    type: 'cursor' | 'selection' | 'highlight' | 'status' | 'spinner' | 'unhighlight';
+    type: 'cursor' | 'selection' | 'highlight' | 'status' | 'spinner' | 'unhighlight' | 'layout';
     data: any;
 }
 

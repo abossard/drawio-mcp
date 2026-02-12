@@ -41,20 +41,62 @@ export const SHAPE_STYLES: Record<string, string> = {
   gray: 'rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;',
 };
 
+// Base edge properties for readable labels (white background behind text)
+const EDGE_LABEL_BASE = 'fontSize=11;fontFamily=Helvetica;labelBackgroundColor=#ffffff;';
+
 export const EDGE_STYLES: Record<string, string> = {
-  straight: '',
-  orthogonal: 'edgeStyle=orthogonalEdgeStyle;',
-  curved: 'curved=1;',
-  entityRelation: 'edgeStyle=entityRelationEdgeStyle;',
-  elbowHorizontal: 'edgeStyle=elbowEdgeStyle;elbow=horizontal;',
-  elbowVertical: 'edgeStyle=elbowEdgeStyle;elbow=vertical;',
+  // Routing styles
+  straight: EDGE_LABEL_BASE,
+  orthogonal: `edgeStyle=orthogonalEdgeStyle;rounded=1;${EDGE_LABEL_BASE}`,
+  orthogonalSharp: `edgeStyle=orthogonalEdgeStyle;rounded=0;${EDGE_LABEL_BASE}`,
+  curved: `curved=1;${EDGE_LABEL_BASE}`,
+  entityRelation: `edgeStyle=entityRelationEdgeStyle;${EDGE_LABEL_BASE}`,
+  elbowHorizontal: `edgeStyle=elbowEdgeStyle;elbow=horizontal;${EDGE_LABEL_BASE}`,
+  elbowVertical: `edgeStyle=elbowEdgeStyle;elbow=vertical;${EDGE_LABEL_BASE}`,
+  isometric: `edgeStyle=isometricEdgeStyle;${EDGE_LABEL_BASE}`,
   // Arrow types
-  arrow: 'endArrow=block;endFill=1;',
-  openArrow: 'endArrow=open;endFill=0;',
-  dashed: 'dashed=1;',
-  dotted: 'dashed=1;dashPattern=1 2;',
-  bidirectional: 'endArrow=block;endFill=1;startArrow=block;startFill=1;',
-  noArrow: 'endArrow=none;endFill=0;',
+  arrow: `endArrow=block;endFill=1;${EDGE_LABEL_BASE}`,
+  openArrow: `endArrow=open;endFill=0;${EDGE_LABEL_BASE}`,
+  dashed: `dashed=1;${EDGE_LABEL_BASE}`,
+  dotted: `dashed=1;dashPattern=1 2;${EDGE_LABEL_BASE}`,
+  bidirectional: `endArrow=block;endFill=1;startArrow=block;startFill=1;${EDGE_LABEL_BASE}`,
+  noArrow: `endArrow=none;endFill=0;${EDGE_LABEL_BASE}`,
+  // Combined routing + arrow styles (most useful for architecture diagrams)
+  orthogonalDashed: `edgeStyle=orthogonalEdgeStyle;rounded=1;dashed=1;${EDGE_LABEL_BASE}`,
+  curvedDashed: `curved=1;dashed=1;${EDGE_LABEL_BASE}`,
+  orthogonalBidirectional: `edgeStyle=orthogonalEdgeStyle;rounded=1;endArrow=block;endFill=1;startArrow=block;startFill=1;${EDGE_LABEL_BASE}`,
+  curvedBidirectional: `curved=1;endArrow=block;endFill=1;startArrow=block;startFill=1;${EDGE_LABEL_BASE}`,
+  orthogonalNoArrow: `edgeStyle=orthogonalEdgeStyle;rounded=1;endArrow=none;endFill=0;${EDGE_LABEL_BASE}`,
+};
+
+/**
+ * Connection point presets for controlling where edges attach to nodes.
+ * Values are fractions (0-1) of the node's width (x) and height (y).
+ * 
+ *   (0,0)----(0.5,0)----(1,0)
+ *     |                    |
+ *   (0,0.5)            (1,0.5)
+ *     |                    |
+ *   (0,1)----(0.5,1)----(1,1)
+ */
+export const CONNECTION_POINTS: Record<string, { x: number; y: number }> = {
+  top:         { x: 0.5, y: 0 },
+  bottom:      { x: 0.5, y: 1 },
+  left:        { x: 0, y: 0.5 },
+  right:       { x: 1, y: 0.5 },
+  topLeft:     { x: 0, y: 0 },
+  topRight:    { x: 1, y: 0 },
+  bottomLeft:  { x: 0, y: 1 },
+  bottomRight: { x: 1, y: 1 },
+  // Offset positions for parallel edges — slightly off-center to avoid overlap
+  topLeft25:     { x: 0.25, y: 0 },
+  topRight75:    { x: 0.75, y: 0 },
+  bottomLeft25:  { x: 0.25, y: 1 },
+  bottomRight75: { x: 0.75, y: 1 },
+  leftTop25:     { x: 0, y: 0.25 },
+  leftBottom75:  { x: 0, y: 0.75 },
+  rightTop25:    { x: 1, y: 0.25 },
+  rightBottom75: { x: 1, y: 0.75 },
 };
 
 export const DEFAULT_GEOMETRY = {

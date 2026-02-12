@@ -16,8 +16,10 @@ import {
   getHistory,
   undoLastOperation,
   redoLastOperation,
+  batchAddElements,
+  checkLayout,
 } from './drawio.js';
-import { SHAPE_STYLES, EDGE_STYLES } from './styles.js';
+import { SHAPE_STYLES, EDGE_STYLES, CONNECTION_POINTS } from './styles.js';
 import { startSidecar, stopSidecar, sendToDrawio, hasConnectedClients } from './sidecar.js';
 
 const server = new McpServer({
@@ -38,7 +40,7 @@ server.tool(
     try {
       const resolved = await createDiagramFile(filePath, pageName);
       return {
-        content: [{ type: 'text', text: `Created diagram: ${resolved}` }],
+        content: [{ type: 'text', text: `Created diagram: ${resolved}\n\nTip: Install the VS Code draw.io extension to view and edit this file live:\n  code --install-extension hediet.vscode-drawio` }],
       };
     } catch (err: any) {
       return { content: [{ type: 'text', text: `Error: ${err.message}` }], isError: true };
@@ -94,7 +96,13 @@ server.tool(
 
 server.tool(
   'add_edge',
-  'Add a connection (edge/arrow) between two nodes in a draw.io diagram.',
+  `Add a connection (edge/arrow) between two nodes in a draw.io diagram.
+
+LAYOUT TIPS for readable diagrams:
+- Use "curved" edgeStyle when multiple edges connect the same pair of nodes, combined with different exitPoint/entryPoint to separate them visually.
+- Use "orthogonal" for clean right-angle routing in architecture diagrams.
+- Use exitPoint/entryPoint to control WHERE on a node the edge connects (e.g. "left", "right", "topLeft25", "bottomRight75") — this prevents edges from stacking on top of each other.
+- For bidirectional flows, use two separate edges with offset connection points (e.g. edge A: exitPoint="rightTop25" → entryPoint="leftTop25", edge B: exitPoint="leftBottom75" → entryPoint="rightBottom75").`,
   {
     filePath: z.string().describe('Path to the .drawio file'),
     sourceId: z.string().describe('ID of the source node'),
@@ -104,15 +112,106 @@ server.tool(
       `Predefined edge style. Available: ${Object.keys(EDGE_STYLES).join(', ')}`
     ),
     style: z.string().optional().describe('Custom draw.io style string'),
+    exitPoint: z.string().optional().describe(
+      `Where the edge exits the source node. Available: ${Object.keys(CONNECTION_POINTS).join(', ')}. Use offset variants (e.g. topLeft25, rightBottom75) when multiple edges share a node to avoid overlap.`
+    ),
+    entryPoint: z.string().optional().describe(
+      `Where the edge enters the target node. Available: ${Object.keys(CONNECTION_POINTS).join(', ')}. Use offset variants to separate parallel edges.`
+    ),
     pageIndex: z.number().optional().describe('Page index (0-based, default: 0)'),
     id: z.string().optional().describe('Custom ID for the edge'),
   },
-  async ({ filePath, sourceId, targetId, label, edgeStyle, style, pageIndex, id }) => {
+  async ({ filePath, sourceId, targetId, label, edgeStyle, style, exitPoint, entryPoint, pageIndex, id }) => {
     try {
-      const result = await addEdge(filePath, { sourceId, targetId, label, edgeStyle, style, pageIndex, id });
+      const result = await addEdge(filePath, { sourceId, targetId, label, edgeStyle, style, exitPoint, entryPoint, pageIndex, id });
+      let text = `Added edge from ${sourceId} → ${targetId} with ID: ${result.id}`;
+      if (result.layoutWarnings.length > 0) {
+        text += '\n\n⚠️ Layout warnings:';
+        for (const w of result.layoutWarnings) {
+          text += `\n  [${w.severity}] ${w.message}`;
+          if (w.suggestion) text += `\n    → ${w.suggestion}`;
+        }
+      }
       return {
-        content: [{ type: 'text', text: `Added edge from ${sourceId} → ${targetId} with ID: ${result.id}` }],
+        content: [{ type: 'text', text }],
       };
+    } catch (err: any) {
+      return { content: [{ type: 'text', text: `Error: ${err.message}` }], isError: true };
+    }
+  }
+);
+
+server.tool(
+  'batch_add_elements',
+  `Add multiple nodes and edges to a draw.io diagram in a single operation. Much more efficient than calling add_node/add_edge individually — performs only one file read and one file write regardless of how many elements are added. Use this for building entire diagrams or adding multiple components at once.
+
+LAYOUT BEST PRACTICES:
+- Space nodes at least 200px apart horizontally and 150px vertically to leave room for edge labels.
+- Use "curved" edgeStyle when multiple edges connect the same nodes or cross over each other.
+- Use exitPoint/entryPoint (e.g. "left", "right", "topLeft25", "bottomRight75") to separate parallel edges.
+- For bidirectional pairs, use offset connection points so the two arrows don't overlap.
+- All edge labels automatically get a white background for readability.
+- Prefer "orthogonal" for structured layouts and "curved" for organic/many-connection layouts.`,
+  {
+    filePath: z.string().describe('Path to the .drawio file'),
+    nodes: z.array(z.object({
+      label: z.string().describe('Text label displayed inside the node'),
+      id: z.string().optional().describe('Custom ID for the node (auto-generated if not provided)'),
+      shape: z.string().optional().describe(
+        `Predefined shape name. Available: ${Object.keys(SHAPE_STYLES).join(', ')}`
+      ),
+      style: z.string().optional().describe('Custom draw.io style string (overrides shape if both provided)'),
+      x: z.number().optional().describe('X position (default: 0)'),
+      y: z.number().optional().describe('Y position (default: 0)'),
+      width: z.number().optional().describe('Width in pixels (default: 120)'),
+      height: z.number().optional().describe('Height in pixels (default: 60)'),
+      pageIndex: z.number().optional().describe('Page index (0-based, default: 0)'),
+    })).optional().describe('Array of nodes to add'),
+    edges: z.array(z.object({
+      sourceId: z.string().describe('ID of the source node'),
+      targetId: z.string().describe('ID of the target node'),
+      label: z.string().optional().describe('Label for the edge'),
+      id: z.string().optional().describe('Custom ID for the edge'),
+      edgeStyle: z.string().optional().describe(
+        `Predefined edge style. Available: ${Object.keys(EDGE_STYLES).join(', ')}`
+      ),
+      style: z.string().optional().describe('Custom draw.io style string'),
+      exitPoint: z.string().optional().describe(
+        `Where edge exits source. Available: ${Object.keys(CONNECTION_POINTS).join(', ')}`
+      ),
+      entryPoint: z.string().optional().describe(
+        `Where edge enters target. Available: ${Object.keys(CONNECTION_POINTS).join(', ')}`
+      ),
+      pageIndex: z.number().optional().describe('Page index (0-based, default: 0)'),
+    })).optional().describe('Array of edges to add'),
+  },
+  async ({ filePath, nodes, edges }) => {
+    try {
+      const result = await batchAddElements(filePath, { nodes, edges });
+      const lines: string[] = [
+        `Batch added ${result.nodeIds.length} node(s) and ${result.edgeIds.length} edge(s).`,
+      ];
+      if (result.nodeIds.length > 0) {
+        lines.push('Nodes:');
+        for (const n of result.nodeIds) {
+          lines.push(`  • "${n.label}" → ID: ${n.id}`);
+        }
+      }
+      if (result.edgeIds.length > 0) {
+        lines.push('Edges:');
+        for (const e of result.edgeIds) {
+          lines.push(`  → ${e.sourceId} → ${e.targetId} (ID: ${e.id})`);
+        }
+      }
+      if (result.layoutWarnings.length > 0) {
+        lines.push('');
+        lines.push(`⚠️ Layout warnings (${result.layoutWarnings.length}):`);
+        for (const w of result.layoutWarnings) {
+          lines.push(`  [${w.severity}] ${w.message}`);
+          if (w.suggestion) lines.push(`    → ${w.suggestion}`);
+        }
+      }
+      return { content: [{ type: 'text', text: lines.join('\n') }] };
     } catch (err: any) {
       return { content: [{ type: 'text', text: `Error: ${err.message}` }], isError: true };
     }
@@ -418,6 +517,134 @@ server.tool(
 
 // ── Resources ──────────────────────────────────────────────────────────────
 
+server.tool(
+  'check_layout',
+  `Analyze a draw.io diagram for layout issues. Returns warnings about:
+- Node overlaps (two nodes occupying the same space)
+- Edge label overlaps with nodes (label text crossing through a node)
+- Insufficient spacing between connected nodes (label won't fit in the gap)
+
+Each warning includes direction-aware suggestions that consider cascading conflicts — e.g. if moving node A right would collide with node B, the suggestion warns about it and recommends moving B first.
+
+Call this after building/modifying a diagram to detect readability problems. Use the suggestions to fix issues via update_element.`,
+  {
+    filePath: z.string().describe('Path to the .drawio file'),
+    pageIndex: z.number().optional().describe('Page to analyze (0-based, default: 0)'),
+  },
+  async ({ filePath, pageIndex }) => {
+    try {
+      const warnings = await checkLayout(filePath, { pageIndex });
+      if (warnings.length === 0) {
+        return { content: [{ type: 'text', text: '✅ No layout issues detected.' }] };
+      }
+      const lines = [`⚠️ Found ${warnings.length} layout issue(s):`];
+      for (const w of warnings) {
+        lines.push(`\n[${w.severity.toUpperCase()}] ${w.message}`);
+        if (w.suggestion) lines.push(`  → ${w.suggestion}`);
+        lines.push(`  Elements: ${w.elementIds.join(', ')}`);
+      }
+      return { content: [{ type: 'text', text: lines.join('\n') }] };
+    } catch (err: any) {
+      return { content: [{ type: 'text', text: `Error: ${err.message}` }], isError: true };
+    }
+  }
+);
+
+server.tool(
+  'apply_layout',
+  `Trigger a draw.io built-in automatic layout algorithm on the diagram. Requires the diagram to be open in VS Code with the companion extension connected.
+
+Available layouts:
+- "hierarchical": Best for flowcharts, org charts, architecture diagrams. Arranges nodes in layers by rank.
+- "organic": Force-directed layout. Good for graphs with many cross-connections. Nodes spread out naturally.
+- "tree": Compact tree layout. Best for strict tree/hierarchy structures.
+- "radialTree": Tree layout radiating outward from center.
+- "circle": Arranges all nodes in a circle.
+
+After layout, draw.io saves the updated positions back to the .drawio file automatically.`,
+  {
+    layout: z.enum(['hierarchical', 'organic', 'tree', 'radialTree', 'circle']).describe('Layout algorithm to apply'),
+    direction: z.enum(['vertical', 'horizontal']).optional().describe('Layout direction (default: vertical). Only applies to hierarchical and tree layouts.'),
+    spacing: z.number().optional().describe('Primary spacing between nodes in px (default: layout-dependent, typically 30-50)'),
+    interRankSpacing: z.number().optional().describe('Spacing between ranks/layers in px (default: layout-dependent). Only for hierarchical and tree.'),
+  },
+  async ({ layout, direction, spacing, interRankSpacing }) => {
+    if (!hasConnectedClients()) {
+      return {
+        content: [{
+          type: 'text',
+          text: 'No companion extension connected. The apply_layout tool requires:\n1. The draw.io VS Code extension: code --install-extension hediet.vscode-drawio\n2. The diagram open in VS Code\n3. The drawio-mcp-bridge companion extension (cd vscode-drawio-mcp-bridge && npm install && npm run compile)\n\nAlternative: Use check_layout to detect issues and update_element to fix positions manually.'
+        }],
+        isError: true,
+      };
+    }
+
+    sendToDrawio({
+      type: 'layout',
+      data: {
+        layout,
+        direction: direction || 'vertical',
+        spacing: spacing,
+        interRankSpacing: interRankSpacing,
+      },
+    });
+
+    return {
+      content: [{
+        type: 'text',
+        text: `Applied "${layout}" layout${direction ? ` (${direction})` : ''}. The diagram positions will be updated automatically. Re-read the diagram or run check_layout to verify the result.`,
+      }],
+    };
+  }
+);
+
+server.resource(
+  'setup-instructions',
+  'drawio://setup',
+  {
+    description: 'Setup instructions for the draw.io MCP server, including required VS Code extensions and companion bridge',
+    mimeType: 'text/markdown',
+  },
+  async () => {
+    return {
+      contents: [{
+        uri: 'drawio://setup',
+        text: [
+          '# draw.io MCP Server — Setup',
+          '',
+          '## Required: VS Code draw.io Extension',
+          'Install the draw.io integration so `.drawio` files render live in VS Code:',
+          '```',
+          'code --install-extension hediet.vscode-drawio',
+          '```',
+          'Or search for **"Draw.io Integration"** (by hediet) in the VS Code Extensions panel.',
+          '',
+          '## Optional: Companion Bridge Extension',
+          'For live features (AI cursor, highlighting, auto-layout via `apply_layout`), install the companion extension:',
+          '```',
+          'cd vscode-drawio-mcp-bridge && npm install && npm run compile',
+          'code --install-extension ./vscode-drawio-mcp-bridge',
+          '```',
+          '',
+          '## MCP Config',
+          'Add to your MCP client config (e.g. `mcp.json`):',
+          '```json',
+          '{',
+          '  "servers": {',
+          '    "drawio": {',
+          '      "command": "node",',
+          '      "args": ["<path-to>/drawio-mcp/build/index.js"]',
+          '    }',
+          '  }',
+          '}',
+          '```',
+        ].join('\n'),
+        mimeType: 'text/markdown',
+      }],
+    };
+  }
+);
+
 server.resource(
   'diagram-files',
   'drawio://files',
@@ -452,23 +679,30 @@ server.prompt(
       role: 'user',
       content: {
         type: 'text',
-        text: `Create a flowchart in draw.io for the following process. Use the drawio-mcp tools to build this step by step:
+        text: `Create a flowchart in draw.io for the following process. Use batch_add_elements to create all nodes and edges in ONE call:
 
 1. First, call create_diagram with filePath="${filePath}"
-2. Add start/end nodes using shape "start" and "end"
-3. Add process steps using shape "processStep"
-4. Add decision points using shape "decision"
-5. Add input/output operations using shape "inputOutput"
-6. Connect all nodes with edges using add_edge
-7. Use descriptive labels on all nodes and decision edges (e.g., "Yes"/"No")
+2. Then call batch_add_elements with ALL nodes and edges at once:
+   - Start/end nodes: shape "start" and "end"
+   - Process steps: shape "processStep"
+   - Decision points: shape "decision"
+   - Input/output: shape "inputOutput"
+   - Connect all with edges
 
-Arrange nodes in a top-to-bottom flow with ~100px vertical spacing between steps.
-Use x=300 as center alignment. Start at y=40.
+LAYOUT RULES (CRITICAL for readability):
+- Arrange top-to-bottom. Center column at x=300, start at y=40.
+- Vertical spacing: 150px between steps (NOT 100px — labels need room).
+- Decision branches: offset left branch x=50, right branch x=550.
+- Edge style: "orthogonal" for main flow, "curved" for branches that skip levels.
+- Edge labels: keep short (1-3 words). Use exitPoint/entryPoint to control where edges connect.
+- When a decision has Yes/No branches going to different columns, use exitPoint="left" and exitPoint="right" on the decision node.
+- When branches merge back, use entryPoint="top" on the merge target.
+- Node width: 160px for process steps, 140x80 for decisions.
 
 Process to visualize:
 ${processDescription}
 
-IMPORTANT: Use meaningful IDs for nodes (e.g., "start", "check-input", "process-data") so edges are easy to trace.`,
+IMPORTANT: Use meaningful IDs (e.g., "start", "check-input", "process-data"). Use batch_add_elements for efficiency.`,
       },
     }],
   })
@@ -486,26 +720,38 @@ server.prompt(
       role: 'user',
       content: {
         type: 'text',
-        text: `Create an architecture diagram in draw.io for the following system. Use the drawio-mcp tools:
+        text: `Create an architecture diagram in draw.io for the following system. Use batch_add_elements for efficiency (ONE call for all nodes and edges):
 
 1. First, call create_diagram with filePath="${filePath}"
-2. Use these shapes for different component types:
+2. Then call batch_add_elements with all nodes and edges:
    - "database" for databases/data stores
    - "server" for backend services
    - "cloud" for cloud/external services
    - "user" for user/actor nodes
-   - "container" for grouping related components (make these larger, e.g. 300x200)
+   - "container" for grouping (300x200 or larger)
    - "blue" for web/frontend components
    - "green" for API/service components
    - "orange" for message queues/middleware
-3. Connect components with labeled edges showing data flow
-4. Use "orthogonal" edgeStyle for clean routing
-5. Arrange in layers: Users (top) → Frontend → Backend → Data (bottom)
+
+LAYOUT RULES (CRITICAL — prevents overlapping and unreadable diagrams):
+- Arrange in layers: Users (y=40) → Frontend (y=240) → Backend (y=440) → Data (y=640).
+- Horizontal spacing: at least 220px between nodes in the same layer.
+- Node widths: 160px minimum. Use 200px for nodes with long names.
+- Edge style: "orthogonal" for same-layer connections, "curved" when edges cross layers or cross other edges.
+- When MULTIPLE edges connect to the SAME node, use DIFFERENT connection points:
+  - Example: 3 edges entering a database → use entryPoint="topLeft25", entryPoint="top", entryPoint="topRight75"
+  - Example: 2 edges leaving a service → use exitPoint="bottom" and exitPoint="right"
+- For bidirectional flows (e.g. request/response), use TWO separate edges with offset connection points:
+  - Request: exitPoint="rightTop25" → entryPoint="leftTop25"
+  - Response: exitPoint="leftBottom75" → entryPoint="rightBottom75"
+  - Use "curvedDashed" for response arrows, "curved" or "orthogonal" for request arrows.
+- Edge labels: keep SHORT (2-4 words max). Labels automatically get white backgrounds.
+- Avoid edges that cross through node boxes — reroute via connection points or use "curved" style.
 
 System to visualize:
 ${systemDescription}
 
-IMPORTANT: Use meaningful IDs and proper spacing (200px horizontal, 150px vertical between layers).`,
+IMPORTANT: Use meaningful IDs, proper spacing, and connection points to keep the diagram readable.`,
       },
     }],
   })
@@ -523,19 +769,29 @@ server.prompt(
       role: 'user',
       content: {
         type: 'text',
-        text: `Create a sequence-style diagram in draw.io for the following interactions. Use the drawio-mcp tools:
+        text: `Create a sequence-style diagram in draw.io for the following interactions. Use batch_add_elements for efficiency:
 
 1. First, call create_diagram with filePath="${filePath}"
-2. Create participant boxes across the top (y=40) with shape "roundedRectangle", spaced ~200px apart horizontally
-3. Draw vertical dashed lines (lifelines) from each participant downward using edges with style "dashed;endArrow=none;endFill=0;"
-4. Add horizontal arrows between lifelines for each message/interaction, progressing downward (increase y by ~60 for each step)
-5. Label each arrow with the message/action
-6. Use solid arrows for requests and dashed arrows for responses
+2. Then call batch_add_elements with ALL elements at once:
+   - Participant boxes across the top (y=40) with shape "roundedRectangle", spaced 250px apart horizontally
+   - Vertical dashed lifelines from each participant downward using edges with style "dashed;endArrow=none;endFill=0;"
+   - Horizontal arrows between lifelines for each message, progressing downward
+
+LAYOUT RULES (CRITICAL for sequence diagrams):
+- Participant spacing: 250px horizontally (not 200px — edge labels need room).
+- Participant width: 140px, height: 50px.
+- Message vertical spacing: 70px between each message arrow.
+- Solid arrows (no special edgeStyle needed) for requests.
+- Dashed arrows for responses: edgeStyle "curvedDashed" or style "dashed=1;".
+- Edge labels: short (1-3 words). Labels automatically get white backgrounds.
+- Self-calls: use exitPoint="rightTop25" and entryPoint="rightBottom75" on the same participant, with "curved" edgeStyle.
+- Lifeline endpoints: add invisible nodes (style "strokeColor=none;fillColor=none;") at the bottom of each lifeline.
+- Keep lifelines aligned vertically under each participant.
 
 Interactions to visualize:
 ${interactionDescription}
 
-IMPORTANT: Keep lifelines aligned vertically under each participant. Use meaningful IDs.`,
+IMPORTANT: Use meaningful IDs. Use batch_add_elements for the entire diagram.`,
       },
     }],
   })
