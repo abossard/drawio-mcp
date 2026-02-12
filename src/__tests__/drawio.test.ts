@@ -22,6 +22,8 @@ import {
   checkLayout,
   analyzePageLayout,
   escapeXml,
+  applySnakeLayout,
+  detectEdgeRoutingIssues,
 } from '../drawio.js';
 
 let tmpDir: string;
@@ -1095,5 +1097,202 @@ describe('escapeXml', () => {
     // Should be XML-escaped, not raw Unicode
     expect(xml).toContain('&#x2192;');
     expect(xml).not.toContain('→');
+  });
+});
+
+// ── applySnakeLayout ──────────────────────────────────────────────────
+
+describe('applySnakeLayout', () => {
+  it('should position nodes in a single row left-to-right when they fit', () => {
+    const nodes = [
+      { label: 'A', width: 100, height: 50 },
+      { label: 'B', width: 100, height: 50 },
+      { label: 'C', width: 100, height: 50 },
+    ];
+    applySnakeLayout(nodes, { startX: 10, startY: 20, hGap: 20, maxRowWidth: 500 });
+    expect(nodes[0].x).toBe(10);
+    expect(nodes[0].y).toBe(20);
+    expect(nodes[1].x).toBe(130); // 10 + 100 + 20
+    expect(nodes[1].y).toBe(20);
+    expect(nodes[2].x).toBe(250); // 130 + 100 + 20
+    expect(nodes[2].y).toBe(20);
+  });
+
+  it('should wrap to a second row that flows right-to-left', () => {
+    const nodes = [
+      { label: 'A', width: 100, height: 50 },
+      { label: 'B', width: 100, height: 50 },
+      { label: 'C', width: 100, height: 50 },
+      { label: 'D', width: 100, height: 50 },
+    ];
+    // maxRowWidth=250 fits only 2 nodes per row (100 + 20 + 100 = 220)
+    applySnakeLayout(nodes, { startX: 0, startY: 0, hGap: 20, vGap: 30, maxRowWidth: 250 });
+
+    // Row 0 (L→R): A, B
+    expect(nodes[0].x).toBe(0);   // A
+    expect(nodes[1].x).toBe(120); // B
+
+    // Row 1 (R→L): reversed order, so D is first positioned, then C
+    // The row contains [C, D], reversed to [D, C]
+    // D gets x=0, C gets x=120
+    expect(nodes[3].x).toBe(0);   // D (reversed — rightmost node in R→L)
+    expect(nodes[2].x).toBe(120); // C (reversed — leftmost node in R→L)
+
+    // Both row-1 nodes at y = 50 + 30 = 80
+    expect(nodes[2].y).toBe(80);
+    expect(nodes[3].y).toBe(80);
+  });
+
+  it('should not modify nodes that already have explicit x and y', () => {
+    const nodes = [
+      { label: 'Fixed', x: 500, y: 500, width: 100, height: 50 },
+      { label: 'Auto', width: 100, height: 50 },
+    ];
+    applySnakeLayout(nodes, { startX: 10, startY: 10 });
+    // Fixed node unchanged
+    expect(nodes[0].x).toBe(500);
+    expect(nodes[0].y).toBe(500);
+    // Auto node positioned
+    expect(nodes[1].x).toBe(10);
+    expect(nodes[1].y).toBe(10);
+  });
+
+  it('should handle three rows with alternating direction', () => {
+    const nodes = Array.from({ length: 6 }, (_, i) => ({
+      label: `N${i}`, width: 100, height: 40,
+    }));
+    // 2 per row
+    applySnakeLayout(nodes, { startX: 0, startY: 0, hGap: 20, vGap: 20, maxRowWidth: 250 });
+
+    // Row 0 (L→R): N0=0, N1=120
+    expect(nodes[0].x).toBe(0);
+    expect(nodes[1].x).toBe(120);
+
+    // Row 1 (R→L): N3=0, N2=120 (reversed)
+    expect(nodes[3].x).toBe(0);
+    expect(nodes[2].x).toBe(120);
+
+    // Row 2 (L→R): N4=0, N5=120
+    expect(nodes[4].x).toBe(0);
+    expect(nodes[5].x).toBe(120);
+
+    // Check y values
+    expect(nodes[0].y).toBe(0);
+    expect(nodes[2].y).toBe(60);  // 40 + 20
+    expect(nodes[4].y).toBe(120); // 60 + 40 + 20
+  });
+
+  it('should work with batchAddElements layout="snake"', async () => {
+    const filePath = path.join(tmpDir, 'snake-test.drawio');
+    await createDiagramFile(filePath);
+
+    const result = await batchAddElements(filePath, {
+      nodes: [
+        { label: 'A', id: 'sn-a', width: 100, height: 50 },
+        { label: 'B', id: 'sn-b', width: 100, height: 50 },
+        { label: 'C', id: 'sn-c', width: 100, height: 50 },
+        { label: 'D', id: 'sn-d', width: 100, height: 50 },
+      ],
+      edges: [
+        { sourceId: 'sn-a', targetId: 'sn-b', id: 'se-ab' },
+        { sourceId: 'sn-b', targetId: 'sn-c', id: 'se-bc' },
+        { sourceId: 'sn-c', targetId: 'sn-d', id: 'se-cd' },
+      ],
+      layout: 'snake',
+      snakeOptions: { maxRowWidth: 280, hGap: 20, startX: 0, startY: 0 },
+    });
+
+    expect(result.nodeIds).toHaveLength(4);
+    expect(result.edgeIds).toHaveLength(3);
+
+    // Read back and verify positioning
+    const info = await readDiagram(filePath);
+    const page = info.pages[0];
+    const nodeMap = new Map(page.nodes.filter(n => n.vertex).map(n => [n.id, n]));
+
+    // Row 0 (L→R): A, B  — Row 1 (R→L): D, C
+    const a = nodeMap.get('sn-a')!;
+    const b = nodeMap.get('sn-b')!;
+    const c = nodeMap.get('sn-c')!;
+    const d = nodeMap.get('sn-d')!;
+
+    expect(a.geometry!.y).toBe(b.geometry!.y); // same row
+    expect(c.geometry!.y).toBe(d.geometry!.y); // same row
+    expect(c.geometry!.y!).toBeGreaterThan(a.geometry!.y!); // row 1 below row 0
+
+    // B and C should be close together (both at the right end of their respective rows)
+    // because of snake reversal — the edge B→C should be short
+    const bRight = (b.geometry!.x ?? 0) + (b.geometry!.width ?? 100);
+    const cRight = (c.geometry!.x ?? 0) + (c.geometry!.width ?? 100);
+    // In snake layout, B is rightmost in row 0, C is rightmost in row 1
+    // Both should be at similar x positions
+    expect(Math.abs(bRight - cRight)).toBeLessThan(50);
+  });
+});
+
+// ── detectEdgeRoutingIssues ───────────────────────────────────────────
+
+describe('detectEdgeRoutingIssues', () => {
+  it('should return no suggestions for nearby nodes', () => {
+    const nodes = [
+      { id: 'a', x: 0, y: 0, width: 100, height: 50 },
+      { id: 'b', x: 150, y: 0, width: 100, height: 50 },
+    ];
+    const edges = [{ id: 'e1', sourceId: 'a', targetId: 'b' }];
+    const suggestions = detectEdgeRoutingIssues(nodes, edges);
+    expect(suggestions).toHaveLength(0);
+  });
+
+  it('should flag long horizontal span with small vertical gap', () => {
+    const nodes = [
+      { id: 'a', x: 0, y: 0, width: 100, height: 50 },
+      { id: 'b', x: 800, y: 10, width: 100, height: 50 },
+    ];
+    const edges = [{ id: 'e1', sourceId: 'a', targetId: 'b', edgeStyle: 'orthogonal' }];
+    const suggestions = detectEdgeRoutingIssues(nodes, edges);
+    expect(suggestions.length).toBeGreaterThan(0);
+    expect(suggestions[0].severity).toBe('warning');
+    expect(suggestions[0].horizontalSpan).toBeGreaterThan(400);
+    expect(suggestions[0].suggestions.some(s => s.includes('snake'))).toBe(true);
+    expect(suggestions[0].suggestions.some(s => s.includes('curved'))).toBe(true);
+  });
+
+  it('should flag very long distances', () => {
+    const nodes = [
+      { id: 'a', x: 0, y: 0, width: 100, height: 50 },
+      { id: 'b', x: 400, y: 500, width: 100, height: 50 },
+    ];
+    const edges = [{ id: 'e1', sourceId: 'a', targetId: 'b' }];
+    const suggestions = detectEdgeRoutingIssues(nodes, edges);
+    expect(suggestions.length).toBeGreaterThan(0);
+    expect(suggestions[0].distance).toBeGreaterThan(600);
+  });
+
+  it('should not flag short edges', () => {
+    const nodes = [
+      { id: 'a', x: 0, y: 0, width: 100, height: 50 },
+      { id: 'b', x: 0, y: 100, width: 100, height: 50 },
+    ];
+    const edges = [{ id: 'e1', sourceId: 'a', targetId: 'b' }];
+    const suggestions = detectEdgeRoutingIssues(nodes, edges);
+    expect(suggestions).toHaveLength(0);
+  });
+
+  it('should be included in batchAddElements result', async () => {
+    const filePath = path.join(tmpDir, 'routing-test.drawio');
+    await createDiagramFile(filePath);
+
+    const result = await batchAddElements(filePath, {
+      nodes: [
+        { label: 'Far Left', id: 'rl-a', x: 0, y: 0, width: 100, height: 50 },
+        { label: 'Far Right', id: 'rl-b', x: 900, y: 10, width: 100, height: 50 },
+      ],
+      edges: [
+        { sourceId: 'rl-a', targetId: 'rl-b', id: 'rl-e1', edgeStyle: 'orthogonal' },
+      ],
+    });
+
+    expect(result.edgeRoutingSuggestions.length).toBeGreaterThan(0);
+    expect(result.edgeRoutingSuggestions[0].edgeId).toBe('rl-e1');
   });
 });

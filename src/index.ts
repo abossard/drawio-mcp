@@ -23,6 +23,8 @@ import {
   validateEdgeStyle,
   validateConnectionPoint,
   buildConnectionStyle,
+  applySnakeLayout,
+  detectEdgeRoutingIssues,
 } from './drawio.js';
 import { SHAPE_STYLES, EDGE_STYLES, CONNECTION_POINTS, DEFAULT_GEOMETRY } from './styles.js';
 import { startSidecar, stopSidecar, sendToDrawio, hasConnectedClients, getClientCount, hasConnectedDrawioClient, sendToDrawioAndWait } from './sidecar.js';
@@ -263,13 +265,28 @@ LAYOUT BEST PRACTICES:
       ),
       pageIndex: z.number().optional().describe('Page index (0-based, default: 0)'),
     })).optional().describe('Array of edges to add'),
+    layout: z.enum(['snake']).optional().describe(
+      'Auto-layout mode. "snake" arranges nodes in boustrophedon (row 1: L\u2192R, row 2: R\u2192L) so edges between consecutive rows are short vertical drops instead of spanning the full width.'
+    ),
+    snakeOptions: z.object({
+      startX: z.number().optional().describe('X position of the first node (default: 60)'),
+      startY: z.number().optional().describe('Y position of the first row (default: 60)'),
+      hGap: z.number().optional().describe('Horizontal gap between nodes (default: 30)'),
+      vGap: z.number().optional().describe('Vertical gap between rows (default: 40)'),
+      maxRowWidth: z.number().optional().describe('Max row width before wrapping (default: 900)'),
+    }).optional().describe('Options for snake layout (only used when layout="snake")'),
   },
-  async ({ filePath, nodes, edges }) => {
+  async ({ filePath, nodes, edges, layout, snakeOptions }) => {
     try {
       const resolvedPath = path.resolve(filePath);
 
       // Live editing path
       if (hasConnectedDrawioClient(resolvedPath)) {
+        // Apply snake layout to input nodes before computing styles/positions
+        if (layout === 'snake' && nodes) {
+          applySnakeLayout(nodes, snakeOptions);
+        }
+
         // Pre-validate and compute styles on MCP side
         const preparedNodes = (nodes || []).map(n => {
           validateShape(n.shape);
@@ -335,11 +352,25 @@ LAYOUT BEST PRACTICES:
           lines.push('Edges:');
           for (const e of rEdges) lines.push(`  → ${e.sourceId} → ${e.targetId} (ID: ${e.id})`);
         }
+
+        // Detect edge routing issues in the live-edit path too
+        const routingSuggestions = detectEdgeRoutingIssues(preparedNodes, preparedEdges);
+        if (routingSuggestions.length > 0) {
+          lines.push('');
+          lines.push(`🔀 Edge routing suggestions (${routingSuggestions.length}):`);
+          for (const s of routingSuggestions) {
+            lines.push(`  [${s.severity}] Edge "${s.edgeId}" (${s.sourceId} → ${s.targetId}): ${s.distance}px span`);
+            for (const sug of s.suggestions) {
+              lines.push(`    → ${sug}`);
+            }
+          }
+        }
+
         return { content: [{ type: 'text', text: lines.join('\n') }] };
       }
 
       // File I/O fallback
-      const result = await batchAddElements(filePath, { nodes, edges });
+      const result = await batchAddElements(filePath, { nodes, edges, layout, snakeOptions });
       const lines: string[] = [
         `Batch added ${result.nodeIds.length} node(s) and ${result.edgeIds.length} edge(s).`,
       ];
@@ -361,6 +392,16 @@ LAYOUT BEST PRACTICES:
         for (const w of result.layoutWarnings) {
           lines.push(`  [${w.severity}] ${w.message}`);
           if (w.suggestion) lines.push(`    → ${w.suggestion}`);
+        }
+      }
+      if (result.edgeRoutingSuggestions.length > 0) {
+        lines.push('');
+        lines.push(`🔀 Edge routing suggestions (${result.edgeRoutingSuggestions.length}):`);
+        for (const s of result.edgeRoutingSuggestions) {
+          lines.push(`  [${s.severity}] Edge "${s.edgeId}" (${s.sourceId} → ${s.targetId}): ${s.distance}px span (${s.horizontalSpan}px horizontal, ${s.verticalSpan}px vertical)`);
+          for (const sug of s.suggestions) {
+            lines.push(`    → ${sug}`);
+          }
         }
       }
       return { content: [{ type: 'text', text: lines.join('\n') }] };

@@ -698,6 +698,181 @@ export async function addPage(
   return { pageId, filePath: resolvedPath, changeId };
 }
 
+// ── Snake (boustrophedon) auto-layout ────────────────────────────────────────
+
+export interface SnakeLayoutOptions {
+  /** X position of the first node (default: 60) */
+  startX?: number;
+  /** Y position of the first row (default: 60) */
+  startY?: number;
+  /** Horizontal gap between nodes in a row (default: 30) */
+  hGap?: number;
+  /** Vertical gap between rows (default: 40) */
+  vGap?: number;
+  /** Maximum row width before wrapping (default: 900) */
+  maxRowWidth?: number;
+}
+
+/**
+ * Apply snake/boustrophedon positioning to an array of nodes.
+ * Row 1 flows left→right, row 2 flows right→left, and so on.
+ * This ensures edges between consecutive nodes (especially across rows)
+ * are short vertical drops instead of spanning the full width.
+ *
+ * Nodes that already have explicit x/y positions set are skipped.
+ * Returns a list of edge routing suggestions for edges that span large distances.
+ */
+export function applySnakeLayout(
+  nodes: Array<{
+    x?: number;
+    y?: number;
+    width?: number;
+    height?: number;
+    [key: string]: any;
+  }>,
+  opts: SnakeLayoutOptions = {},
+): void {
+  const startX = opts.startX ?? 60;
+  const startY = opts.startY ?? 60;
+  const hGap = opts.hGap ?? 30;
+  const vGap = opts.vGap ?? 40;
+  const maxRowWidth = opts.maxRowWidth ?? 900;
+
+  // Collect nodes that need auto-positioning (no explicit x AND y)
+  const autoNodes = nodes.filter(n => n.x === undefined && n.y === undefined);
+  if (autoNodes.length === 0) return;
+
+  // First pass: compute rows (fitting nodes into maxRowWidth)
+  const rows: Array<Array<typeof autoNodes[0]>> = [];
+  let currentRow: Array<typeof autoNodes[0]> = [];
+  let currentRowWidth = 0;
+
+  for (const node of autoNodes) {
+    const w = node.width ?? DEFAULT_GEOMETRY.width;
+    const needed = currentRow.length === 0 ? w : hGap + w;
+
+    if (currentRow.length > 0 && currentRowWidth + needed > maxRowWidth) {
+      rows.push(currentRow);
+      currentRow = [node];
+      currentRowWidth = w;
+    } else {
+      currentRow.push(node);
+      currentRowWidth += needed;
+    }
+  }
+  if (currentRow.length > 0) rows.push(currentRow);
+
+  // Second pass: assign positions with alternating direction
+  let y = startY;
+  for (let rowIdx = 0; rowIdx < rows.length; rowIdx++) {
+    const row = rows[rowIdx];
+    const leftToRight = rowIdx % 2 === 0;
+    const maxH = Math.max(...row.map(n => n.height ?? DEFAULT_GEOMETRY.height));
+
+    // Order nodes for positioning
+    const ordered = leftToRight ? row : [...row].reverse();
+
+    let x = startX;
+    for (const node of ordered) {
+      const w = node.width ?? DEFAULT_GEOMETRY.width;
+      node.x = x;
+      node.y = y;
+      x += w + hGap;
+    }
+
+    y += maxH + vGap;
+  }
+}
+
+/**
+ * Analyze edges for long-distance routing issues and return suggestions.
+ * Call after positioning is finalized.
+ */
+export function detectEdgeRoutingIssues(
+  nodes: Array<{ id?: string; x?: number; y?: number; width?: number; height?: number }>,
+  edges: Array<{ id?: string; sourceId: string; targetId: string; edgeStyle?: string; style?: string }>,
+): EdgeRoutingSuggestion[] {
+  const suggestions: EdgeRoutingSuggestion[] = [];
+  const nodeMap = new Map<string, { x: number; y: number; width: number; height: number }>();
+
+  for (const n of nodes) {
+    if (n.id) {
+      nodeMap.set(n.id, {
+        x: n.x ?? 0, y: n.y ?? 0,
+        width: n.width ?? DEFAULT_GEOMETRY.width,
+        height: n.height ?? DEFAULT_GEOMETRY.height,
+      });
+    }
+  }
+
+  for (const edge of edges) {
+    const src = nodeMap.get(edge.sourceId);
+    const tgt = nodeMap.get(edge.targetId);
+    if (!src || !tgt) continue;
+
+    const srcCx = src.x + src.width / 2;
+    const srcCy = src.y + src.height / 2;
+    const tgtCx = tgt.x + tgt.width / 2;
+    const tgtCy = tgt.y + tgt.height / 2;
+
+    const dx = Math.abs(tgtCx - srcCx);
+    const dy = Math.abs(tgtCy - srcCy);
+    const dist = Math.sqrt(dx * dx + dy * dy);
+
+    // Flag edges that span a long horizontal distance while having a small vertical gap
+    // This is the pattern that causes the "edge goes over all boxes" problem
+    const isLongHorizontalSpan = dx > 400 && dy < 100;
+    const isLongDistance = dist > 600;
+    const hasOrthogonalStyle = (edge.edgeStyle === 'orthogonal' || edge.style?.includes('orthogonalEdgeStyle'))
+      && !edge.style?.includes('curved');
+
+    if (isLongHorizontalSpan || isLongDistance) {
+      const severity: 'warning' | 'info' = isLongHorizontalSpan ? 'warning' : 'info';
+      const suggestion: EdgeRoutingSuggestion = {
+        edgeId: edge.id || '(unknown)',
+        sourceId: edge.sourceId,
+        targetId: edge.targetId,
+        distance: Math.round(dist),
+        horizontalSpan: Math.round(dx),
+        verticalSpan: Math.round(dy),
+        severity,
+        suggestions: [],
+      };
+
+      if (isLongHorizontalSpan) {
+        suggestion.suggestions.push(
+          `Consider rearranging nodes so "${edge.sourceId}" and "${edge.targetId}" are closer together (e.g., snake/boustrophedon layout).`
+        );
+        if (hasOrthogonalStyle) {
+          suggestion.suggestions.push(
+            `Switch edge to "curved" style to avoid long horizontal orthogonal segments that cross over intermediate nodes.`
+          );
+        }
+      }
+      if (isLongDistance) {
+        suggestion.suggestions.push(
+          `This edge spans ${Math.round(dist)}px — consider using "curved" edgeStyle or adding intermediate waypoints.`
+        );
+      }
+
+      suggestions.push(suggestion);
+    }
+  }
+
+  return suggestions;
+}
+
+export interface EdgeRoutingSuggestion {
+  edgeId: string;
+  sourceId: string;
+  targetId: string;
+  distance: number;
+  horizontalSpan: number;
+  verticalSpan: number;
+  severity: 'warning' | 'info';
+  suggestions: string[];
+}
+
 /** Batch-add multiple nodes and edges in a single file write */
 export async function batchAddElements(
   filePath: string,
@@ -724,16 +899,24 @@ export async function batchAddElements(
       pageIndex?: number;
       id?: string;
     }>;
+    layout?: 'snake';
+    snakeOptions?: SnakeLayoutOptions;
   }
 ): Promise<{
   nodeIds: Array<{ id: string; label: string }>;
   edgeIds: Array<{ id: string; sourceId: string; targetId: string }>;
   changeId: string;
   layoutWarnings: LayoutWarning[];
+  edgeRoutingSuggestions: EdgeRoutingSuggestion[];
 }> {
   const resolvedPath = path.resolve(filePath);
   const beforeXml = await readRawXml(resolvedPath);
   let xml = beforeXml;
+
+  // Apply snake layout if requested (before validation, so positions are set)
+  if (options.layout === 'snake' && options.nodes) {
+    applySnakeLayout(options.nodes, options.snakeOptions);
+  }
 
   // Pre-validate everything before making any changes
   const existingIds = getExistingIds(xml);
@@ -834,7 +1017,19 @@ export async function batchAddElements(
     ? analyzePageLayout(postInfo.pages[0])
     : [];
 
-  return { nodeIds: nodeResults, edgeIds: edgeResults, changeId, layoutWarnings };
+  // Detect edge routing issues based on final positions
+  const edgeRoutingSuggestions = detectEdgeRoutingIssues(
+    (options.nodes ?? []).map(n => ({
+      id: n.id, x: n.x, y: n.y,
+      width: n.width, height: n.height,
+    })),
+    (options.edges ?? []).map(e => ({
+      id: e.id, sourceId: e.sourceId, targetId: e.targetId,
+      edgeStyle: e.edgeStyle, style: e.style,
+    })),
+  );
+
+  return { nodeIds: nodeResults, edgeIds: edgeResults, changeId, layoutWarnings, edgeRoutingSuggestions };
 }
 
 /** List all .drawio files in a directory recursively */

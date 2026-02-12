@@ -1,6 +1,6 @@
 <mxfile host="65bd71144e">
     <diagram id="F-0r70eJ7iA3cW_yZe47" name="Page-1">
-        <mxGraphModel dx="632" dy="646" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+        <mxGraphModel dx="592" dy="244" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
             <root>
                 <mxCell id="0"/>
                 <mxCell id="1" parent="0"/>
@@ -62,10 +62,240 @@
         </mxGraphModel>
     </diagram>
     <diagram id="7Dy1OyTAVk7pmE9RE03Z" name="Live Demo">
-        <mxGraphModel dx="632" dy="646" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+        <mxGraphModel dx="911" dy="375" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
             <root>
                 <mxCell id="0"/>
                 <mxCell id="1" parent="0"/>
+            </root>
+        </mxGraphModel>
+    </diagram>
+    <diagram id="L2Bbw7WMk29urrr9h9D4" name="Kubernetes Architecture">
+        <mxGraphModel dx="880" dy="718" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="k8s-cluster" value="Kubernetes Cluster" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;dashed=1;dashPattern=5 5;verticalAlign=top;fontSize=14;fontStyle=1;strokeWidth=2;" vertex="1" parent="1">
+                    <mxGeometry x="60" y="100" width="700" height="520" as="geometry"/>
+                </mxCell>
+                <mxCell id="k8s-cp-box" value="Control Plane" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;verticalAlign=top;fontSize=12;fontStyle=1;" vertex="1" parent="1">
+                    <mxGeometry x="80" y="140" width="300" height="200" as="geometry"/>
+                </mxCell>
+                <mxCell id="k8s-api" value="API Server" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="100" y="180" width="120" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="k8s-etcd" value="etcd" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;" vertex="1" parent="1">
+                    <mxGeometry x="240" y="175" width="100" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="k8s-ctrl" value="Controller&#xa;Manager" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="100" y="260" width="120" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="k8s-sched" value="Scheduler" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="240" y="260" width="120" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="k8s-worker-box" value="Worker Nodes" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;verticalAlign=top;fontSize=12;fontStyle=1;" vertex="1" parent="1">
+                    <mxGeometry x="400" y="140" width="340" height="460" as="geometry"/>
+                </mxCell>
+                <mxCell id="k8s-ingress" value="Ingress&#xa;Controller" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1">
+                    <mxGeometry x="500" y="180" width="130" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="k8s-svc-fe" value="Frontend&#xa;Service" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+                    <mxGeometry x="420" y="280" width="120" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="k8s-svc-be" value="Backend&#xa;Service" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+                    <mxGeometry x="600" y="280" width="120" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="k8s-pod-fe1" value="Pod: nginx" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=10;" vertex="1" parent="1">
+                    <mxGeometry x="410" y="390" width="100" height="45" as="geometry"/>
+                </mxCell>
+                <mxCell id="k8s-pod-fe2" value="Pod: nginx" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=10;" vertex="1" parent="1">
+                    <mxGeometry x="410" y="450" width="100" height="45" as="geometry"/>
+                </mxCell>
+                <mxCell id="k8s-pod-be1" value="Pod: api-app" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=10;" vertex="1" parent="1">
+                    <mxGeometry x="600" y="390" width="110" height="45" as="geometry"/>
+                </mxCell>
+                <mxCell id="k8s-pod-be2" value="Pod: api-app" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=10;" vertex="1" parent="1">
+                    <mxGeometry x="600" y="450" width="110" height="45" as="geometry"/>
+                </mxCell>
+                <mxCell id="k8s-pv" value="Persistent&#xa;Volume" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;" vertex="1" parent="1">
+                    <mxGeometry x="630" y="530" width="100" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="k8s-user" value="User / Client" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;" vertex="1" parent="1">
+                    <mxGeometry x="800" y="170" width="40" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="k8s-internet" value="Internet" style="ellipse;shape=cloud;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="790" y="310" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="ke-user-ingress" value="HTTPS" style="edgeStyle=orthogonalEdgeStyle;rounded=1;fontSize=11;fontFamily=Helvetica;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="k8s-user" target="k8s-ingress">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="ke-inet-ingress" value="traffic" style="curved=1;fontSize=11;fontFamily=Helvetica;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="k8s-internet" target="k8s-ingress">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="ke-ing-fe" value="/frontend" style="edgeStyle=orthogonalEdgeStyle;rounded=1;fontSize=11;fontFamily=Helvetica;labelBackgroundColor=#ffffff;exitX=0;exitY=1;exitDx=0;exitDy=0;" edge="1" parent="1" source="k8s-ingress" target="k8s-svc-fe">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="ke-ing-be" value="/api" style="edgeStyle=orthogonalEdgeStyle;rounded=1;fontSize=11;fontFamily=Helvetica;labelBackgroundColor=#ffffff;exitX=1;exitY=1;exitDx=0;exitDy=0;" edge="1" parent="1" source="k8s-ingress" target="k8s-svc-be">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="ke-svcfe-pod1" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;fontSize=11;fontFamily=Helvetica;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="k8s-svc-fe" target="k8s-pod-fe1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="ke-svcfe-pod2" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;fontSize=11;fontFamily=Helvetica;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="k8s-svc-fe" target="k8s-pod-fe2">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="ke-svcbe-pod1" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;fontSize=11;fontFamily=Helvetica;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="k8s-svc-be" target="k8s-pod-be1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="ke-svcbe-pod2" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;fontSize=11;fontFamily=Helvetica;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="k8s-svc-be" target="k8s-pod-be2">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="ke-be1-pv" value="mount" style="curved=1;fontSize=11;fontFamily=Helvetica;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="k8s-pod-be1" target="k8s-pv">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="ke-be2-pv" value="mount" style="curved=1;fontSize=11;fontFamily=Helvetica;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="k8s-pod-be2" target="k8s-pv">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="ke-api-etcd" value="store state" style="fontSize=11;fontFamily=Helvetica;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="k8s-api" target="k8s-etcd">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="ke-ctrl-api" value="watch" style="edgeStyle=orthogonalEdgeStyle;rounded=1;fontSize=11;fontFamily=Helvetica;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="k8s-ctrl" target="k8s-api">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="ke-sched-api" value="bind pods" style="edgeStyle=orthogonalEdgeStyle;rounded=1;fontSize=11;fontFamily=Helvetica;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="k8s-sched" target="k8s-api">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="ke-api-worker" value="kubelet" style="edgeStyle=orthogonalEdgeStyle;rounded=1;dashed=1;fontSize=11;fontFamily=Helvetica;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="k8s-api" target="k8s-ingress">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="tl-title" value="🚀 Pod Scheduling Timeline" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#1a1a2e;strokeColor=#16213e;fontColor=#ffffff;fontSize=18;fontStyle=1;align=center;" vertex="1" parent="1">
+                    <mxGeometry x="60" y="660" width="860" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="tl-section-k8s" value="⎈ Normal K8s Scheduling Path" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e8f5e9;strokeColor=#4caf50;verticalAlign=top;fontSize=13;fontStyle=1;fontColor=#2e7d32;dashed=1;dashPattern=5 5;strokeWidth=2;" vertex="1" parent="1">
+                    <mxGeometry x="60" y="720" width="860" height="200" as="geometry"/>
+                </mxCell>
+                <mxCell id="tl-s1" value="📝 kubectl apply&#xa;&lt;font style=&#39;font-size:9px;color:#555&#39;&gt;User submits pod spec&lt;/font&gt;&#xa;&lt;font style=&#39;font-size:8px;color:#888&#39;&gt;~10-50ms&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#bbdefb;strokeColor=#1976d2;fontSize=10;fontStyle=1;shadow=1;" vertex="1" parent="1">
+                    <mxGeometry x="70" y="755" width="115" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="tl-s2" value="🔐 API Server&#xa;&lt;font style=&#39;font-size:9px;color:#555&#39;&gt;Auth + Admission&lt;/font&gt;&#xa;&lt;font style=&#39;font-size:8px;color:#888&#39;&gt;~1-100ms&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#c8e6c9;strokeColor=#388e3c;fontSize=10;fontStyle=1;shadow=1;" vertex="1" parent="1">
+                    <mxGeometry x="200" y="755" width="115" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="tl-s3" value="💾 etcd&#xa;&lt;font style=&#39;font-size:9px;color:#555&#39;&gt;Persist pod object&lt;/font&gt;&#xa;&lt;font style=&#39;font-size:8px;color:#888&#39;&gt;~2-10ms&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff9c4;strokeColor=#f9a825;fontSize=10;fontStyle=1;shadow=1;" vertex="1" parent="1">
+                    <mxGeometry x="330" y="755" width="105" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="tl-s4" value="🔍 Scheduler&#xa;&lt;font style=&#39;font-size:9px;color:#555&#39;&gt;Filter + Score nodes&lt;/font&gt;&#xa;&lt;font style=&#39;font-size:8px;color:#888&#39;&gt;~2-10ms&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1bee7;strokeColor=#8e24aa;fontSize=10;fontStyle=1;shadow=1;" vertex="1" parent="1">
+                    <mxGeometry x="450" y="755" width="115" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="tl-s5" value="🔗 Bind&#xa;&lt;font style=&#39;font-size:9px;color:#555&#39;&gt;Pod → Node&lt;/font&gt;&#xa;&lt;font style=&#39;font-size:8px;color:#888&#39;&gt;~5-15ms&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffccbc;strokeColor=#e64a19;fontSize=10;fontStyle=1;shadow=1;" vertex="1" parent="1">
+                    <mxGeometry x="580" y="755" width="100" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="tl-s6" value="📦 Kubelet&#xa;&lt;font style=&#39;font-size:9px;color:#555&#39;&gt;Pull image + start&lt;/font&gt;&#xa;&lt;font style=&#39;font-size:8px;color:#888&#39;&gt;~0.1-120s&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#b3e5fc;strokeColor=#0288d1;fontSize=10;fontStyle=1;shadow=1;" vertex="1" parent="1">
+                    <mxGeometry x="695" y="755" width="110" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="tl-s7" value="✅ Pod Ready!&#xa;&lt;font style=&#39;font-size:9px;color:#555&#39;&gt;Probes pass&lt;/font&gt;&#xa;&lt;font style=&#39;font-size:8px;color:#888&#39;&gt;~1-10s&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#a5d6a7;strokeColor=#2e7d32;fontSize=10;fontStyle=1;shadow=1;strokeWidth=2;" vertex="1" parent="1">
+                    <mxGeometry x="820" y="755" width="90" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="tl-time-k8s" value="⏱️ Total: ~200ms - 2min (cached) / up to 2min+ (cold pull)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e8f5e9;strokeColor=#4caf50;fontSize=11;fontStyle=3;fontColor=#2e7d32;align=center;" vertex="1" parent="1">
+                    <mxGeometry x="70" y="840" width="840" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="tl-decision" value="❓ Node has&#xa;capacity?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff59d;strokeColor=#f57f17;fontSize=10;fontStyle=1;shadow=1;" vertex="1" parent="1">
+                    <mxGeometry x="450" y="885" width="100" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="tl-yes" value="✅ YES → schedule normally (above)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#c8e6c9;strokeColor=#388e3c;fontSize=10;fontStyle=1;" vertex="1" parent="1">
+                    <mxGeometry x="580" y="895" width="200" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="tl-no" value="❌ NO → NAP kicks in ⬇️" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffcdd2;strokeColor=#c62828;fontSize=10;fontStyle=1;" vertex="1" parent="1">
+                    <mxGeometry x="220" y="895" width="190" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="tl-section-nap" value="🤖 AKS Node Autoprovisioner (NAP / Karpenter) Path" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fce4ec;strokeColor=#e91e63;verticalAlign=top;fontSize=13;fontStyle=1;fontColor=#c62828;dashed=1;dashPattern=5 5;strokeWidth=2;" vertex="1" parent="1">
+                    <mxGeometry x="60" y="960" width="860" height="280" as="geometry"/>
+                </mxCell>
+                <mxCell id="tl-n1" value="⏳ Pod Pending&#xa;&lt;font style=&#39;font-size:9px;color:#555&#39;&gt;Unschedulable!&lt;/font&gt;&#xa;&lt;font style=&#39;font-size:8px;color:#c62828&#39;&gt;Scheduler gives up&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffcdd2;strokeColor=#c62828;fontSize=10;fontStyle=1;shadow=1;" vertex="1" parent="1">
+                    <mxGeometry x="70" y="1000" width="120" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="tl-n2" value="👁️ Karpenter&#xa;&lt;font style=&#39;font-size:9px;color:#555&#39;&gt;Detects pending pod&lt;/font&gt;&#xa;&lt;font style=&#39;font-size:8px;color:#888&#39;&gt;~100ms&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8bbd0;strokeColor=#ad1457;fontSize=10;fontStyle=1;shadow=1;" vertex="1" parent="1">
+                    <mxGeometry x="205" y="1000" width="120" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="tl-n3" value="🧮 Compute SKU&#xa;&lt;font style=&#39;font-size:9px;color:#555&#39;&gt;Best VM size for pod&lt;/font&gt;&#xa;&lt;font style=&#39;font-size:8px;color:#888&#39;&gt;~50-200ms&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1bee7;strokeColor=#7b1fa2;fontSize=10;fontStyle=1;shadow=1;" vertex="1" parent="1">
+                    <mxGeometry x="340" y="1000" width="120" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="tl-n4" value="☁️ Azure API&#xa;&lt;font style=&#39;font-size:9px;color:#555&#39;&gt;Create VM&lt;/font&gt;&#xa;&lt;font style=&#39;font-size:8px;color:#0277bd&#39;&gt;~2-3s request&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#bbdefb;strokeColor=#1565c0;fontSize=10;fontStyle=1;shadow=1;" vertex="1" parent="1">
+                    <mxGeometry x="475" y="1000" width="110" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="tl-n5" value="⚙️ VM Provision&#xa;&lt;font style=&#39;font-size:9px;color:#555&#39;&gt;Azure spins up HW&lt;/font&gt;&#xa;&lt;font style=&#39;font-size:8px;color:#e65100&#39;&gt;~30-90s 🔥&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe0b2;strokeColor=#e65100;fontSize=10;fontStyle=1;shadow=1;strokeWidth=2;" vertex="1" parent="1">
+                    <mxGeometry x="600" y="1000" width="120" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="tl-n6" value="🖥️ kubelet Join&#xa;&lt;font style=&#39;font-size:9px;color:#555&#39;&gt;Node registers&lt;/font&gt;&#xa;&lt;font style=&#39;font-size:8px;color:#888&#39;&gt;~20-30s&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#c8e6c9;strokeColor=#2e7d32;fontSize=10;fontStyle=1;shadow=1;" vertex="1" parent="1">
+                    <mxGeometry x="735" y="1000" width="110" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="tl-n7" value="🟢 Node Ready&#xa;&lt;font style=&#39;font-size:9px;color:#555&#39;&gt;Taints removed&lt;/font&gt;&#xa;&lt;font style=&#39;font-size:8px;color:#888&#39;&gt;~10-30s&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#a5d6a7;strokeColor=#1b5e20;fontSize=10;fontStyle=1;shadow=1;" vertex="1" parent="1">
+                    <mxGeometry x="735" y="1100" width="120" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="tl-n8" value="🔗 Scheduler&#xa;&lt;font style=&#39;font-size:9px;color:#555&#39;&gt;Binds pod → new node&lt;/font&gt;&#xa;&lt;font style=&#39;font-size:8px;color:#888&#39;&gt;~1s&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1bee7;strokeColor=#8e24aa;fontSize=10;fontStyle=1;shadow=1;" vertex="1" parent="1">
+                    <mxGeometry x="600" y="1100" width="120" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="tl-n9" value="📦 Pull + Start&#xa;&lt;font style=&#39;font-size:9px;color:#555&#39;&gt;Container runtime&lt;/font&gt;&#xa;&lt;font style=&#39;font-size:8px;color:#888&#39;&gt;~5-15s&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#b3e5fc;strokeColor=#0288d1;fontSize=10;fontStyle=1;shadow=1;" vertex="1" parent="1">
+                    <mxGeometry x="465" y="1100" width="120" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="tl-n10" value="🎉 Pod Running!&#xa;&lt;font style=&#39;font-size:9px;color:#555&#39;&gt;On brand-new node&lt;/font&gt;&#xa;&lt;font style=&#39;font-size:8px;color:#2e7d32&#39;&gt;🏁 Done!&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#69f0ae;strokeColor=#00c853;fontSize=10;fontStyle=1;shadow=1;strokeWidth=3;" vertex="1" parent="1">
+                    <mxGeometry x="330" y="1100" width="120" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="tl-time-nap" value="⏱️ Total NAP path: ~2-4 minutes (dominated by Azure VM provisioning 🔥)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fce4ec;strokeColor=#e91e63;fontSize=11;fontStyle=3;fontColor=#c62828;align=center;" vertex="1" parent="1">
+                    <mxGeometry x="70" y="1190" width="840" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="tl-nap-benefits" value="💡 NAP vs Cluster Autoscaler:&#xa;🎯 No pre-configured node pools needed&#xa;🧠 Auto-selects optimal VM SKU per workload&#xa;💰 Consolidation reduces cost&#xa;⚡ Spot instance fallback built-in&#xa;🔄 Managed Karpenter — AKS handles upgrades" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff3e0;strokeColor=#ff6f00;fontSize=9;fontStyle=0;align=left;spacingLeft=8;spacingTop=5;shadow=1;" vertex="1" parent="1">
+                    <mxGeometry x="620" y="1095" width="290" height="130" as="geometry"/>
+                </mxCell>
+                <mxCell id="tl-e-s1s2" value="➡️" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#1976d2;strokeWidth=2;fontFamily=Helvetica;fontSize=9;" edge="1" parent="1" source="tl-s1" target="tl-s2">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="tl-e-s2s3" value="➡️" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#388e3c;strokeWidth=2;fontFamily=Helvetica;fontSize=9;" edge="1" parent="1" source="tl-s2" target="tl-s3">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="tl-e-s3s4" value="➡️" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#f9a825;strokeWidth=2;fontFamily=Helvetica;fontSize=9;" edge="1" parent="1" source="tl-s3" target="tl-s4">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="tl-e-s4s5" value="➡️" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#8e24aa;strokeWidth=2;fontFamily=Helvetica;fontSize=9;" edge="1" parent="1" source="tl-s4" target="tl-s5">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="tl-e-s5s6" value="➡️" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#e64a19;strokeWidth=2;fontFamily=Helvetica;fontSize=9;" edge="1" parent="1" source="tl-s5" target="tl-s6">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="tl-e-s6s7" value="➡️" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#0288d1;strokeWidth=2;fontFamily=Helvetica;fontSize=9;" edge="1" parent="1" source="tl-s6" target="tl-s7">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="tl-e-dec-yes" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#388e3c;strokeWidth=2;fontSize=10;fontStyle=1;fontColor=#388e3c;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="tl-decision" target="tl-yes">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="tl-e-dec-no" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#c62828;strokeWidth=2;fontSize=10;fontStyle=1;fontColor=#c62828;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="tl-decision" target="tl-no">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="tl-e-n1n2" value="➡️" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#c62828;strokeWidth=2;fontSize=9;" edge="1" parent="1" source="tl-n1" target="tl-n2">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="tl-e-n2n3" value="➡️" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#ad1457;strokeWidth=2;fontSize=9;" edge="1" parent="1" source="tl-n2" target="tl-n3">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="tl-e-n3n4" value="➡️" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#7b1fa2;strokeWidth=2;fontSize=9;" edge="1" parent="1" source="tl-n3" target="tl-n4">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="tl-e-n4n5" value="➡️" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#1565c0;strokeWidth=2;fontSize=9;" edge="1" parent="1" source="tl-n4" target="tl-n5">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="tl-e-n5n6" value="🔥" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#e65100;strokeWidth=3;fontSize=9;" edge="1" parent="1" source="tl-n5" target="tl-n6">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="tl-e-n6n7" value="⬇️" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#2e7d32;strokeWidth=2;fontSize=9;exitPoint=bottom;entryPoint=top;" edge="1" parent="1" source="tl-n6" target="tl-n7">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="tl-e-n7n8" value="➡️" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#1b5e20;strokeWidth=2;fontSize=9;" edge="1" parent="1" source="tl-n7" target="tl-n8">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="tl-e-n8n9" value="➡️" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#8e24aa;strokeWidth=2;fontSize=9;" edge="1" parent="1" source="tl-n8" target="tl-n9">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="tl-e-n9n10" value="🎉" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#00c853;strokeWidth=3;fontSize=9;" edge="1" parent="1" source="tl-n9" target="tl-n10">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
             </root>
         </mxGraphModel>
     </diagram>
