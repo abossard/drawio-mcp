@@ -157,14 +157,65 @@ AI Assistant ──(MCP)──> drawio-mcp server ──(writes XML)──> .dra
 
 ## Companion Extension (Optional)
 
-For AI cursor overlays, cell highlighting, and status messages, install the companion VS Code extension:
+The companion VS Code extension adds real-time AI presence overlays to the draw.io editor. Without it the core MCP tools (create, read, edit, undo) work fine — the extension adds the visual extras.
+
+### What it adds
+
+| Feature | Description |
+|---------|-------------|
+| 🤖 AI cursor | Shows where the AI is "looking" in the diagram |
+| 🔲 Cell selection | Highlights which cells the AI is editing |
+| ✨ Flash highlight | Temporary colored flash on elements |
+| 💬 Status messages | Shows AI status in the editor (e.g. "Adding database…") |
+| ⏳ Spinner | Loading indicator during long operations |
+| 📐 Auto-layout | Applies layout algorithms (hierarchical, organic, tree, circle, radial) |
+
+### Install
 
 ```bash
+# From the drawio-mcp repo root:
 cd vscode-drawio-mcp-bridge
 npm install && npm run build
 ```
 
 Then in VS Code: <kbd>F1</kbd> → *"Developer: Install Extension from Location..."* → select the `vscode-drawio-mcp-bridge` folder.
+
+The extension auto-connects to the MCP server's WebSocket sidecar when you open a `.drawio` file. No extra configuration needed.
+
+### Settings
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| `drawioMcpBridge.websocketPort` | `9219` | WebSocket port (must match `DRAWIO_MCP_SIDECAR_PORT`) |
+| `drawioMcpBridge.autoConnect` | `true` | Connect automatically when a `.drawio` file opens |
+| `drawioMcpBridge.aiColor` | `#D13913` | Color for AI cursor and selection overlays |
+| `drawioMcpBridge.aiLabel` | `🤖 AI` | Label shown next to the AI cursor |
+
+### Commands
+
+- **Draw.io MCP: Connect to Server** — manually connect to the sidecar
+- **Draw.io MCP: Disconnect from Server** — disconnect
+
+### How it works
+
+```
+┌─────────────────────────────────────────────────┐
+│  VS Code                                        │
+│                                                 │
+│  draw.io extension          drawio-mcp-bridge   │
+│  ┌──────────────┐          ┌─────────────────┐  │
+│  │ draw.io       │◄─plugin─┤ Injects JS into │  │
+│  │ webview       │         │ draw.io iframe   │  │
+│  └──────────────┘          └────────┬────────┘  │
+│                                     │ WebSocket  │
+│                          ┌──────────▼────────┐  │
+│                          │ drawio-mcp server  │  │
+│                          │ sidecar (:9219)    │  │
+│                          └───────────────────┘  │
+└─────────────────────────────────────────────────┘
+```
+
+The extension injects a plugin into the draw.io iframe that opens its own WebSocket to the MCP sidecar (`ws://127.0.0.1:9219/drawio`). AI actions (cursor moves, highlights, status) flow through this channel. User interactions (mouse position, cell selection) are sent back to the MCP server so the AI knows what the user is looking at.
 
 ---
 
