@@ -1,8 +1,7 @@
 import * as vscode from 'vscode';
-import { BridgeClient } from './bridge-client';
 import { DrawioPluginProvider } from './plugin-provider';
 
-let bridgeClient: BridgeClient | undefined;
+let bridgeClient: any | undefined;
 
 export function activate(context: vscode.ExtensionContext) {
     const config = vscode.workspace.getConfiguration('drawioMcpBridge');
@@ -12,16 +11,17 @@ export function activate(context: vscode.ExtensionContext) {
     // Register as draw.io extension plugin provider
     const pluginProvider = new DrawioPluginProvider(config);
 
-    // Register commands
+    // Register commands — lazy-load BridgeClient to avoid crash if 'ws' is missing
     context.subscriptions.push(
         vscode.commands.registerCommand('drawio-mcp-bridge.connect', async () => {
             if (bridgeClient?.isConnected) {
                 vscode.window.showInformationMessage('Already connected to MCP sidecar');
                 return;
             }
-            bridgeClient = new BridgeClient(port);
-            attachBridgeListeners(bridgeClient);
             try {
+                const { BridgeClient } = await import('./bridge-client');
+                bridgeClient = new BridgeClient(port);
+                attachBridgeListeners(bridgeClient);
                 await bridgeClient.connect();
                 vscode.window.showInformationMessage(`Connected to drawio-mcp sidecar on port ${port}`);
             } catch (err: any) {
@@ -36,9 +36,8 @@ export function activate(context: vscode.ExtensionContext) {
     );
 
     // Listen for bridge client messages (command/control channel)
-    function attachBridgeListeners(client: BridgeClient) {
+    function attachBridgeListeners(client: any) {
         client.on('message', (msg: any) => {
-            // Log sidecar command/control messages for diagnostics
             if (msg.type === 'status') {
                 vscode.window.setStatusBarMessage(`$(hubot) ${msg.data?.message ?? 'AI active'}`, 5000);
             }
@@ -51,16 +50,21 @@ export function activate(context: vscode.ExtensionContext) {
         });
     }
 
-    // Auto-connect if configured
+    // Auto-connect if configured — lazy-load to avoid crash
     if (autoConnect) {
-        bridgeClient = new BridgeClient(port);
-        attachBridgeListeners(bridgeClient);
-        bridgeClient.connect().catch(() => {
-            // Silently fail on auto-connect — server might not be running
+        import('./bridge-client').then(({ BridgeClient }) => {
+            bridgeClient = new BridgeClient(port);
+            attachBridgeListeners(bridgeClient);
+            bridgeClient.connect().catch(() => {
+                // Silently fail — server might not be running yet
+            });
+        }).catch(() => {
+            // 'ws' module not available — bridge won't connect but draw.io plugin still works
+            console.warn('[drawio-mcp-bridge] ws module not available, bridge client disabled');
         });
     }
 
-    // Provide the draw.io extension API
+    // CRITICAL: Always return the draw.io plugin API — this must never fail
     return {
         drawioExtensionV1: {
             getDrawioPlugins: async (_context: { uri: vscode.Uri }) => {

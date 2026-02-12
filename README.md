@@ -170,15 +170,41 @@ The companion VS Code extension adds real-time AI presence overlays to the draw.
 | ⏳ Spinner | Loading indicator during long operations |
 | 📐 Auto-layout | Applies layout algorithms (hierarchical, organic, tree, circle, radial) |
 
-### Install
+### Prerequisites
+
+- **draw.io VS Code extension** — install from the marketplace or run:
+  ```bash
+  code --install-extension hediet.vscode-drawio
+  # or for Insiders:
+  code-insiders --install-extension hediet.vscode-drawio
+  ```
+
+### Install the Bridge Extension
 
 ```bash
 # From the drawio-mcp repo root:
 cd vscode-drawio-mcp-bridge
-npm install && npm run build
+npm install
+npm run build
+npx @vscode/vsce package --allow-missing-repository
 ```
 
-Then in VS Code: <kbd>F1</kbd> → *"Developer: Install Extension from Location..."* → select the `vscode-drawio-mcp-bridge` folder.
+This produces a `drawio-mcp-bridge-0.1.0.vsix` file. Install it:
+
+```bash
+code --install-extension ./drawio-mcp-bridge-0.1.0.vsix
+# or for Insiders:
+code-insiders --install-extension ./drawio-mcp-bridge-0.1.0.vsix
+```
+
+Alternatively, in VS Code: <kbd>F1</kbd> → *"Extensions: Install from VSIX…"* → select `drawio-mcp-bridge-0.1.0.vsix`.
+
+### Verify
+
+1. Reload VS Code (Cmd+Shift+P → *"Developer: Reload Window"*)
+2. Open any `.drawio` file
+3. A small **activity log panel** appears in the top-left of the draw.io editor showing connection status
+4. Use the MCP tool `check_connection` to confirm the bridge is connected
 
 The extension auto-connects to the MCP server's WebSocket sidecar when you open a `.drawio` file. No extra configuration needed.
 

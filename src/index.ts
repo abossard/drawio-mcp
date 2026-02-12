@@ -20,7 +20,7 @@ import {
   checkLayout,
 } from './drawio.js';
 import { SHAPE_STYLES, EDGE_STYLES, CONNECTION_POINTS } from './styles.js';
-import { startSidecar, stopSidecar, sendToDrawio, hasConnectedClients } from './sidecar.js';
+import { startSidecar, stopSidecar, sendToDrawio, hasConnectedClients, getClientCount } from './sidecar.js';
 
 const server = new McpServer({
   name: 'drawio-mcp',
@@ -515,6 +515,54 @@ server.tool(
   }
 );
 
+server.tool(
+  'check_connection',
+  'Check the WebSocket sidecar connection status. Reports whether the sidecar server is running and how many companion extension / draw.io plugin clients are connected. Useful for diagnosing live-edit features.',
+  {},
+  async () => {
+    const counts = getClientCount();
+    const sidecarRunning = counts.extensions >= 0; // if getClientCount works, sidecar is up
+    const totalClients = counts.extensions + counts.drawioPlugins;
+
+    const lines: string[] = [];
+    lines.push(`Sidecar WebSocket server: ✅ running on ws://127.0.0.1:${process.env.DRAWIO_MCP_SIDECAR_PORT || '9219'}`);
+    lines.push(`Connected clients: ${totalClients}`);
+    lines.push(`  • Extension clients (bridge): ${counts.extensions}`);
+    lines.push(`  • Draw.io plugin clients: ${counts.drawioPlugins}`);
+    lines.push('');
+
+    if (totalClients === 0) {
+      lines.push('⚠️ No clients connected. Live features (highlight, cursor, status, layout) will not work.');
+      lines.push('');
+      lines.push('To enable live editing, install the companion extensions:');
+      lines.push('');
+      lines.push('Step 1 — Install the draw.io VS Code extension:');
+      lines.push('  code --install-extension hediet.vscode-drawio');
+      lines.push('');
+      lines.push('Step 2 — Build & install the bridge extension (from the drawio-mcp repo root):');
+      lines.push('  cd vscode-drawio-mcp-bridge');
+      lines.push('  npm install && npm run build');
+      lines.push('  npx @vscode/vsce package --allow-missing-repository');
+      lines.push('  code --install-extension ./drawio-mcp-bridge-0.1.0.vsix');
+      lines.push('');
+      lines.push('Step 3 — Reload VS Code (Cmd/Ctrl+Shift+P → "Developer: Reload Window")');
+      lines.push('Step 4 — Open any .drawio file — the bridge auto-connects to ws://127.0.0.1:9219');
+      lines.push('');
+      lines.push('A small activity log panel will appear in the top-left of the draw.io editor when connected.');
+    } else {
+      lines.push('✅ Live editing features are available!');
+      if (counts.drawioPlugins > 0) {
+        lines.push('  → draw.io plugin connected — highlight, cursor, selection, layout all work');
+      }
+      if (counts.extensions > 0) {
+        lines.push('  → Bridge extension connected — status messages and spinner work');
+      }
+    }
+
+    return { content: [{ type: 'text', text: lines.join('\n') }] };
+  }
+);
+
 // ── Resources ──────────────────────────────────────────────────────────────
 
 server.tool(
@@ -522,9 +570,12 @@ server.tool(
   `Analyze a draw.io diagram for layout issues. Returns warnings about:
 - Node overlaps (two nodes occupying the same space)
 - Edge label overlaps with nodes (label text crossing through a node)
+- Edge passes through node (an edge's path visually crosses an intermediate node)
 - Insufficient spacing between connected nodes (label won't fit in the gap)
 
 Each warning includes direction-aware suggestions that consider cascading conflicts — e.g. if moving node A right would collide with node B, the suggestion warns about it and recommends moving B first.
+
+For edge-passes-through-node issues, suggestions include moving the blocking node, changing edge style to "curved" or "orthogonal", or using connection points to reroute.
 
 Call this after building/modifying a diagram to detect readability problems. Use the suggestions to fix issues via update_element.`,
   {

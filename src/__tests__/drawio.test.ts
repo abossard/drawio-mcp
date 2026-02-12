@@ -879,6 +879,145 @@ describe('validation', () => {
     });
   });
 
+  describe('edge passes through node detection', () => {
+    it('should detect edge passing through an intermediate node', () => {
+      // A at left, B in the middle, C at right — edge A→C passes through B
+      const page = {
+        id: 'p1',
+        name: 'Test',
+        nodes: [
+          { id: 'a', value: 'A', style: '', vertex: true, edge: false, parent: '1', geometry: { x: 0, y: 100, width: 80, height: 60 } },
+          { id: 'b', value: 'B', style: '', vertex: true, edge: false, parent: '1', geometry: { x: 200, y: 100, width: 80, height: 60 } },
+          { id: 'c', value: 'C', style: '', vertex: true, edge: false, parent: '1', geometry: { x: 400, y: 100, width: 80, height: 60 } },
+          { id: 'e1', value: '', style: '', vertex: false, edge: true, parent: '1', source: 'a', target: 'c', geometry: { relative: true } },
+        ],
+      };
+      const warnings = analyzePageLayout(page);
+      const passThrough = warnings.filter(w => w.type === 'edge_passes_through_node');
+      expect(passThrough.length).toBeGreaterThanOrEqual(1);
+      expect(passThrough[0].elementIds).toContain('e1');
+      expect(passThrough[0].elementIds).toContain('b');
+      expect(passThrough[0].suggestion).toContain('MOVE NODE');
+      expect(passThrough[0].suggestion).toContain('REROUTE EDGE');
+      expect(passThrough[0].suggestion).toContain('REDIRECT with connection points');
+      expect(passThrough[0].suggestion).toContain('exitPoint=');
+      expect(passThrough[0].suggestion).toContain('entryPoint=');
+    });
+
+    it('should not flag edge that does not pass through any node', () => {
+      // A at top-left, B at bottom-right, C far away — edge A→B doesn't touch C
+      const page = {
+        id: 'p1',
+        name: 'Test',
+        nodes: [
+          { id: 'a', value: 'A', style: '', vertex: true, edge: false, parent: '1', geometry: { x: 0, y: 0, width: 80, height: 60 } },
+          { id: 'b', value: 'B', style: '', vertex: true, edge: false, parent: '1', geometry: { x: 400, y: 400, width: 80, height: 60 } },
+          { id: 'c', value: 'C', style: '', vertex: true, edge: false, parent: '1', geometry: { x: 0, y: 400, width: 80, height: 60 } },
+          { id: 'e1', value: '', style: '', vertex: false, edge: true, parent: '1', source: 'a', target: 'b', geometry: { relative: true } },
+        ],
+      };
+      const warnings = analyzePageLayout(page);
+      const passThrough = warnings.filter(w => w.type === 'edge_passes_through_node');
+      expect(passThrough).toHaveLength(0);
+    });
+
+    it('should detect multiple edges passing through same node', () => {
+      // B is in the middle; edges A→C and D→E both pass through B
+      const page = {
+        id: 'p1',
+        name: 'Test',
+        nodes: [
+          { id: 'a', value: 'A', style: '', vertex: true, edge: false, parent: '1', geometry: { x: 0, y: 100, width: 60, height: 40 } },
+          { id: 'b', value: 'Blocker', style: '', vertex: true, edge: false, parent: '1', geometry: { x: 180, y: 80, width: 80, height: 80 } },
+          { id: 'c', value: 'C', style: '', vertex: true, edge: false, parent: '1', geometry: { x: 400, y: 100, width: 60, height: 40 } },
+          { id: 'd', value: 'D', style: '', vertex: true, edge: false, parent: '1', geometry: { x: 180, y: 0, width: 60, height: 40 } },
+          { id: 'e', value: 'E', style: '', vertex: true, edge: false, parent: '1', geometry: { x: 180, y: 250, width: 60, height: 40 } },
+          { id: 'e1', value: '', style: '', vertex: false, edge: true, parent: '1', source: 'a', target: 'c', geometry: { relative: true } },
+          { id: 'e2', value: '', style: '', vertex: false, edge: true, parent: '1', source: 'd', target: 'e', geometry: { relative: true } },
+        ],
+      };
+      const warnings = analyzePageLayout(page);
+      const passThrough = warnings.filter(w => w.type === 'edge_passes_through_node');
+      expect(passThrough.length).toBeGreaterThanOrEqual(2);
+    });
+
+    it('should work via checkLayout file API', async () => {
+      const filePath = path.join(tmpDir, 'passthrough.drawio');
+      await createDiagramFile(filePath);
+      await addNode(filePath, { label: 'A', id: 'a', x: 0, y: 100, width: 80, height: 60 });
+      await addNode(filePath, { label: 'B', id: 'b', x: 200, y: 100, width: 80, height: 60 });
+      await addNode(filePath, { label: 'C', id: 'c', x: 400, y: 100, width: 80, height: 60 });
+      await addEdge(filePath, { sourceId: 'a', targetId: 'c', id: 'e1' });
+
+      const warnings = await checkLayout(filePath);
+      const passThrough = warnings.filter(w => w.type === 'edge_passes_through_node');
+      expect(passThrough.length).toBeGreaterThanOrEqual(1);
+      expect(passThrough[0].message).toContain('passes through node');
+    });
+
+    it('should suggest moving connected blocker with warning', () => {
+      // B is in the middle and connected to A — suggestion should note it
+      const page = {
+        id: 'p1',
+        name: 'Test',
+        nodes: [
+          { id: 'a', value: 'A', style: '', vertex: true, edge: false, parent: '1', geometry: { x: 0, y: 100, width: 80, height: 60 } },
+          { id: 'b', value: 'B', style: '', vertex: true, edge: false, parent: '1', geometry: { x: 200, y: 100, width: 80, height: 60 } },
+          { id: 'c', value: 'C', style: '', vertex: true, edge: false, parent: '1', geometry: { x: 400, y: 100, width: 80, height: 60 } },
+          // Edge A→C passes through B, and there's also an edge A→B
+          { id: 'e1', value: '', style: '', vertex: false, edge: true, parent: '1', source: 'a', target: 'c', geometry: { relative: true } },
+          { id: 'e2', value: '', style: '', vertex: false, edge: true, parent: '1', source: 'a', target: 'b', geometry: { relative: true } },
+        ],
+      };
+      const warnings = analyzePageLayout(page);
+      const passThrough = warnings.filter(w => w.type === 'edge_passes_through_node');
+      expect(passThrough.length).toBeGreaterThanOrEqual(1);
+      // The blocker B is connected to source A, so the suggestion should mention it
+      expect(passThrough[0].suggestion).toContain('connected to source/target');
+    });
+
+    it('should suggest concrete update_element coordinates', () => {
+      const page = {
+        id: 'p1',
+        name: 'Test',
+        nodes: [
+          { id: 'a', value: 'A', style: '', vertex: true, edge: false, parent: '1', geometry: { x: 0, y: 100, width: 80, height: 60 } },
+          { id: 'b', value: 'B', style: '', vertex: true, edge: false, parent: '1', geometry: { x: 200, y: 100, width: 80, height: 60 } },
+          { id: 'c', value: 'C', style: '', vertex: true, edge: false, parent: '1', geometry: { x: 400, y: 100, width: 80, height: 60 } },
+          { id: 'e1', value: '', style: '', vertex: false, edge: true, parent: '1', source: 'a', target: 'c', geometry: { relative: true } },
+        ],
+      };
+      const warnings = analyzePageLayout(page);
+      const passThrough = warnings.filter(w => w.type === 'edge_passes_through_node');
+      expect(passThrough.length).toBeGreaterThanOrEqual(1);
+      // Should contain an actionable update_element call
+      expect(passThrough[0].suggestion).toContain('update_element');
+      expect(passThrough[0].suggestion).toMatch(/x: -?\d+/);
+      expect(passThrough[0].suggestion).toMatch(/y: -?\d+/);
+    });
+
+    it('should recommend steering direction based on blocker position', () => {
+      // Blocker is above the edge midline — suggestion should say "below"
+      // Edge goes from A(0,200) to C(400,200) at y~230 (center). Blocker at (200,170) has center at y=200,
+      // which is above edge center y=230, and its rect extends 170..230 so it intersects the line.
+      const page = {
+        id: 'p1',
+        name: 'Test',
+        nodes: [
+          { id: 'a', value: 'A', style: '', vertex: true, edge: false, parent: '1', geometry: { x: 0, y: 200, width: 80, height: 60 } },
+          { id: 'b', value: 'Blocker', style: '', vertex: true, edge: false, parent: '1', geometry: { x: 200, y: 200, width: 80, height: 60 } },
+          { id: 'c', value: 'C', style: '', vertex: true, edge: false, parent: '1', geometry: { x: 400, y: 200, width: 80, height: 60 } },
+          { id: 'e1', value: '', style: '', vertex: false, edge: true, parent: '1', source: 'a', target: 'c', geometry: { relative: true } },
+        ],
+      };
+      const warnings = analyzePageLayout(page);
+      const passThrough = warnings.filter(w => w.type === 'edge_passes_through_node');
+      expect(passThrough.length).toBeGreaterThanOrEqual(1);
+      // Should contain steering recommendation
+      expect(passThrough[0].suggestion).toMatch(/above|below/);
+    });
+  });
+
   describe('new edge styles', () => {
     it('should accept all new edge style names', async () => {
       const filePath = path.join(tmpDir, 'test.drawio');

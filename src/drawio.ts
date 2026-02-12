@@ -863,7 +863,7 @@ export async function listDiagramFiles(dir: string): Promise<string[]> {
 // ── Layout analysis ─────────────────────────────────────────────────────────
 
 export interface LayoutWarning {
-  type: 'node_overlap' | 'edge_label_overlap' | 'insufficient_spacing' | 'node_outside_bounds';
+  type: 'node_overlap' | 'edge_label_overlap' | 'insufficient_spacing' | 'node_outside_bounds' | 'edge_passes_through_node';
   severity: 'error' | 'warning' | 'info';
   message: string;
   elementIds: string[];
@@ -887,6 +887,69 @@ interface Rect {
 function rectsOverlap(a: Rect, b: Rect): boolean {
   return !(a.x + a.width <= b.x || b.x + b.width <= a.x ||
            a.y + a.height <= b.y || b.y + b.height <= a.y);
+}
+
+/** Check if a line segment (p1→p2) intersects a rectangle */
+function lineSegmentIntersectsRect(
+  p1x: number, p1y: number,
+  p2x: number, p2y: number,
+  rect: Rect
+): boolean {
+  // Cohen-Sutherland style: check if the segment crosses through the rect.
+  // We test intersection with each of the 4 edges of the rectangle.
+  const left = rect.x;
+  const right = rect.x + rect.width;
+  const top = rect.y;
+  const bottom = rect.y + rect.height;
+
+  // Check if either endpoint is inside the rect
+  if (pointInRect(p1x, p1y, rect) || pointInRect(p2x, p2y, rect)) return true;
+
+  // Check intersection with each edge of the rect
+  if (segmentsIntersect(p1x, p1y, p2x, p2y, left, top, right, top)) return true;     // top edge
+  if (segmentsIntersect(p1x, p1y, p2x, p2y, left, bottom, right, bottom)) return true; // bottom edge
+  if (segmentsIntersect(p1x, p1y, p2x, p2y, left, top, left, bottom)) return true;   // left edge
+  if (segmentsIntersect(p1x, p1y, p2x, p2y, right, top, right, bottom)) return true; // right edge
+
+  return false;
+}
+
+function pointInRect(px: number, py: number, rect: Rect): boolean {
+  return px >= rect.x && px <= rect.x + rect.width &&
+         py >= rect.y && py <= rect.y + rect.height;
+}
+
+/** Check if two line segments (a1→a2) and (b1→b2) intersect */
+function segmentsIntersect(
+  a1x: number, a1y: number, a2x: number, a2y: number,
+  b1x: number, b1y: number, b2x: number, b2y: number
+): boolean {
+  const d1 = cross(b1x, b1y, b2x, b2y, a1x, a1y);
+  const d2 = cross(b1x, b1y, b2x, b2y, a2x, a2y);
+  const d3 = cross(a1x, a1y, a2x, a2y, b1x, b1y);
+  const d4 = cross(a1x, a1y, a2x, a2y, b2x, b2y);
+
+  if (((d1 > 0 && d2 < 0) || (d1 < 0 && d2 > 0)) &&
+      ((d3 > 0 && d4 < 0) || (d3 < 0 && d4 > 0))) {
+    return true;
+  }
+
+  // Collinear cases
+  if (d1 === 0 && onSegment(b1x, b1y, b2x, b2y, a1x, a1y)) return true;
+  if (d2 === 0 && onSegment(b1x, b1y, b2x, b2y, a2x, a2y)) return true;
+  if (d3 === 0 && onSegment(a1x, a1y, a2x, a2y, b1x, b1y)) return true;
+  if (d4 === 0 && onSegment(a1x, a1y, a2x, a2y, b2x, b2y)) return true;
+
+  return false;
+}
+
+function cross(ox: number, oy: number, ax: number, ay: number, bx: number, by: number): number {
+  return (ax - ox) * (by - oy) - (ay - oy) * (bx - ox);
+}
+
+function onSegment(px: number, py: number, qx: number, qy: number, rx: number, ry: number): boolean {
+  return Math.min(px, qx) <= rx && rx <= Math.max(px, qx) &&
+         Math.min(py, qy) <= ry && ry <= Math.max(py, qy);
 }
 
 function rectArea(a: Rect, b: Rect): number {
@@ -1013,7 +1076,51 @@ export function analyzePageLayout(page: DiagramPage): LayoutWarning[] {
     }
   }
 
-  // 3. Check insufficient spacing between connected nodes (label won't fit)
+  // 3. Check edges passing through intermediate nodes
+  // Build adjacency: which nodes are connected by edges?
+  const adjacency = new Map<string, Set<string>>();
+  for (const edge of edges) {
+    if (edge.source && edge.target) {
+      if (!adjacency.has(edge.source)) adjacency.set(edge.source, new Set());
+      if (!adjacency.has(edge.target)) adjacency.set(edge.target, new Set());
+      adjacency.get(edge.source)!.add(edge.target);
+      adjacency.get(edge.target)!.add(edge.source);
+    }
+  }
+
+  for (const edge of edges) {
+    const srcRect = rectMap.get(edge.source ?? '');
+    const tgtRect = rectMap.get(edge.target ?? '');
+    if (!srcRect || !tgtRect) continue;
+
+    // Compute connection endpoints (center of source → center of target for straight-line approximation)
+    const srcCx = srcRect.x + srcRect.width / 2;
+    const srcCy = srcRect.y + srcRect.height / 2;
+    const tgtCx = tgtRect.x + tgtRect.width / 2;
+    const tgtCy = tgtRect.y + tgtRect.height / 2;
+
+    for (const v of nonContainers) {
+      // Skip source and target nodes themselves
+      if (v.id === edge.source || v.id === edge.target) continue;
+      const nodeRect = rectMap.get(v.id)!;
+
+      if (lineSegmentIntersectsRect(srcCx, srcCy, tgtCx, tgtCy, nodeRect)) {
+        const suggestion = buildEdgePassThroughSuggestion(
+          edge, v, srcRect, tgtRect, nodeRect,
+          nonContainerRects, rectMap, adjacency
+        );
+        warnings.push({
+          type: 'edge_passes_through_node',
+          severity: 'warning',
+          message: `Edge "${edge.id}" (${edge.source} → ${edge.target}) passes through node "${v.id}" ("${v.value}")`,
+          elementIds: [edge.id, v.id],
+          suggestion,
+        });
+      }
+    }
+  }
+
+  // 4. Check insufficient spacing between connected nodes (label won't fit)
   const MIN_LABEL_GAP = 60; // minimum px gap for a readable label
   for (const edge of edges) {
     if (!edge.value || edge.value.trim() === '') continue;
@@ -1055,6 +1162,121 @@ export function analyzePageLayout(page: DiagramPage): LayoutWarning[] {
   }
 
   return warnings;
+}
+
+/** Build context-aware fix suggestions for an edge that passes through a node */
+function buildEdgePassThroughSuggestion(
+  edge: DiagramNode,
+  blocker: DiagramNode,
+  srcRect: Rect,
+  tgtRect: Rect,
+  blockerRect: Rect,
+  allRects: { id: string; rect: Rect }[],
+  rectMap: Map<string, Rect>,
+  adjacency: Map<string, Set<string>>,
+): string {
+  const lines: string[] = [];
+  lines.push(`Edge "${edge.id}" passes through node "${blocker.id}". Fix options:\n`);
+
+  // --- Option 1: Move the blocking node ---
+  // Determine perpendicular direction to the edge's main axis
+  const edgeAxis = computeEdgeAxis(srcRect, tgtRect); // e.g. "right" means edge goes L→R
+  const perpDirs = edgeAxis === 'right' || edgeAxis === 'left'
+    ? ['up', 'down'] as const
+    : ['left', 'right'] as const;
+
+  // Check how far to move and whether it would conflict
+  const moveAmount = Math.max(blockerRect.width, blockerRect.height) + 40;
+  const moveCandidates = perpDirs.map(dir => {
+    const dx = dir === 'left' ? -moveAmount : dir === 'right' ? moveAmount : 0;
+    const dy = dir === 'up' ? -moveAmount : dir === 'down' ? moveAmount : 0;
+    const movedRect: Rect = { x: blockerRect.x + dx, y: blockerRect.y + dy, width: blockerRect.width, height: blockerRect.height };
+    const conflicts = allRects
+      .filter(r => r.id !== blocker.id && rectsOverlap(movedRect, r.rect))
+      .map(r => r.id);
+    return { dir, dx, dy, conflicts };
+  });
+
+  const bestMove = moveCandidates.sort((a, b) => a.conflicts.length - b.conflicts.length)[0];
+  const blockerIsConnected =
+    adjacency.get(edge.source ?? '')?.has(blocker.id) ||
+    adjacency.get(edge.target ?? '')?.has(blocker.id);
+
+  lines.push(`  (1) MOVE NODE "${blocker.id}" — move ${moveAmount}px ${bestMove.dir}`);
+  if (bestMove.conflicts.length === 0) {
+    lines.push(`      ✅ Clear path, no new conflicts.`);
+  } else {
+    lines.push(`      ⚠️ Would conflict with: ${bestMove.conflicts.map(id => `"${id}"`).join(', ')}.`);
+  }
+  if (blockerIsConnected) {
+    lines.push(`      ℹ️ Node "${blocker.id}" is connected to source/target — moving it will change edge routing for those connections too.`);
+    lines.push(`      Best when: the blocking node's position is flexible and not part of an aligned row/column.`);
+  } else {
+    lines.push(`      Best when: the blocking node is unrelated to this edge's flow and just happens to be in the way.`);
+  }
+
+  // Compute new coordinates for the suggestion
+  const newX = blockerRect.x + bestMove.dx;
+  const newY = blockerRect.y + bestMove.dy;
+  lines.push(`      → update_element("${blocker.id}", { x: ${newX}, y: ${newY} })`);
+
+  // --- Option 2: Change edge style to curved/orthogonal ---
+  const edgeHasStyle = edge.style && edge.style.length > 0;
+  const alreadyCurved = edgeHasStyle && (edge.style.includes('curved=1') || edge.style.includes('edgeStyle=orthogonalEdgeStyle'));
+
+  lines.push(`\n  (2) REROUTE EDGE with edgeStyle — use "curved" or "orthogonal"`);
+  if (alreadyCurved) {
+    lines.push(`      ⚠️ Edge already uses a routed style but still intersects — the automatic routing may not avoid this node.`);
+    lines.push(`      Best when: combined with option 3 (connection points) to force specific exit/entry directions.`);
+  } else {
+    lines.push(`      "orthogonal": routes with right-angle bends. Best for structured diagrams (flowcharts, architecture).`);
+    lines.push(`      "curved": smooth Bézier curve that bends around obstacles. Best for organic layouts with many crossing connections.`);
+    lines.push(`      Best when: you want to keep all nodes in their current positions.`);
+  }
+  lines.push(`      → add_edge or update style: edgeStyle="orthogonal" or edgeStyle="curved"`);
+
+  // --- Option 3: Use exit/entry connection points ---
+  // Suggest specific connection points based on where the blocker is relative to src/tgt
+  const blockerCx = blockerRect.x + blockerRect.width / 2;
+  const blockerCy = blockerRect.y + blockerRect.height / 2;
+  const srcCx = srcRect.x + srcRect.width / 2;
+  const srcCy = srcRect.y + srcRect.height / 2;
+  const tgtCx = tgtRect.x + tgtRect.width / 2;
+  const tgtCy = tgtRect.y + tgtRect.height / 2;
+
+  // Determine which side to steer the edge: if blocker is above the edge midline, steer below, and vice versa
+  const edgeMidY = (srcCy + tgtCy) / 2;
+  const blockerAbove = blockerCy < edgeMidY;
+  const edgeMidX = (srcCx + tgtCx) / 2;
+  const blockerLeft = blockerCx < edgeMidX;
+
+  let exitSuggestion: string;
+  let entrySuggestion: string;
+
+  if (edgeAxis === 'right' || edgeAxis === 'left') {
+    // Edge goes horizontally — steer vertically
+    exitSuggestion = blockerAbove ? 'bottomRight75' : 'topRight25';
+    entrySuggestion = blockerAbove ? 'bottomLeft75' : 'topLeft25';
+    if (edgeAxis === 'left') {
+      exitSuggestion = blockerAbove ? 'bottomLeft75' : 'topLeft25';
+      entrySuggestion = blockerAbove ? 'bottomRight75' : 'topRight25';
+    }
+  } else {
+    // Edge goes vertically — steer horizontally
+    exitSuggestion = blockerLeft ? 'rightBottom75' : 'leftBottom75';
+    entrySuggestion = blockerLeft ? 'rightTop25' : 'leftTop25';
+    if (edgeAxis === 'up') {
+      exitSuggestion = blockerLeft ? 'rightTop25' : 'leftTop25';
+      entrySuggestion = blockerLeft ? 'rightBottom75' : 'leftBottom75';
+    }
+  }
+
+  lines.push(`\n  (3) REDIRECT with connection points — exitPoint/entryPoint`);
+  lines.push(`      Steer the edge ${blockerAbove ? 'below' : 'above'} the blocking node by choosing where it leaves the source and enters the target.`);
+  lines.push(`      Best when: you want precise control or have multiple edges on the same pair of nodes.`);
+  lines.push(`      → exitPoint="${exitSuggestion}", entryPoint="${entrySuggestion}"`);
+
+  return lines.join('\n');
 }
 
 /** Determine the dominant axis between two rects: which direction is target relative to source */
