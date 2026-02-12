@@ -1,6 +1,6 @@
 <mxfile host="65bd71144e">
     <diagram id="F-0r70eJ7iA3cW_yZe47" name="Page-1">
-        <mxGraphModel dx="592" dy="244" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+        <mxGraphModel dx="307" dy="415" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
             <root>
                 <mxCell id="0"/>
                 <mxCell id="1" parent="0"/>
@@ -14,10 +14,10 @@
                     <mxGeometry x="340" y="160" width="160" height="60" as="geometry"/>
                 </mxCell>
                 <mxCell id="auth" value="Auth Service" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" parent="1" vertex="1">
-                    <mxGeometry x="100" y="320" width="150" height="60" as="geometry"/>
+                    <mxGeometry x="76" y="320" width="150" height="60" as="geometry"/>
                 </mxCell>
                 <mxCell id="orders" value="Order Service" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" parent="1" vertex="1">
-                    <mxGeometry x="340" y="320" width="150" height="60" as="geometry"/>
+                    <mxGeometry x="410" y="320" width="150" height="60" as="geometry"/>
                 </mxCell>
                 <mxCell id="notify" value="Notification Service" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" parent="1" vertex="1">
                     <mxGeometry x="580" y="320" width="170" height="60" as="geometry"/>
@@ -29,7 +29,7 @@
                     <mxGeometry x="360" y="480" width="120" height="70" as="geometry"/>
                 </mxCell>
                 <mxCell id="queue" value="Message Queue" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" parent="1" vertex="1">
-                    <mxGeometry x="580" y="480" width="160" height="60" as="geometry"/>
+                    <mxGeometry x="618" y="480" width="160" height="60" as="geometry"/>
                 </mxCell>
                 <mxCell id="e1" value="HTTPS" style="edgeStyle=orthogonalEdgeStyle;rounded=1;fontSize=11;fontFamily=Helvetica;labelBackgroundColor=#ffffff;" parent="1" source="user" target="api-gw" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
@@ -295,6 +295,370 @@
                 </mxCell>
                 <mxCell id="tl-e-n9n10" value="🎉" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#00c853;strokeWidth=3;fontSize=9;" edge="1" parent="1" source="tl-n9" target="tl-n10">
                     <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+    <diagram id="kns1gKfxNpd0CGHBbg4O" name="K8s Bin Packing Guide">
+        <mxGraphModel dx="1624" dy="1657" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="bp-title" value="⎈ Kubernetes Bin Packing — Complete Guide" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#1a1a2e;strokeColor=#16213e;fontColor=#ffffff;fontSize=22;fontStyle=1;align=center;shadow=1;" parent="1" vertex="1">
+                    <mxGeometry x="20" width="1760" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="bp-subtitle" value="All methods &amp; mechanisms to influence pod density, node utilization, and resource efficiency on Kubernetes nodes" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e8eaf6;strokeColor=#3949ab;fontColor=#283593;fontSize=12;fontStyle=2;align=center;" parent="1" vertex="1">
+                    <mxGeometry x="20" y="65" width="1760" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="sec1-box" value="📦 1. Resource Requests &amp; Limits" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e3f2fd;strokeColor=#1565c0;verticalAlign=top;fontSize=15;fontStyle=1;fontColor=#0d47a1;dashed=1;dashPattern=5 5;strokeWidth=2;" parent="1" vertex="1">
+                    <mxGeometry x="20" y="110" width="860" height="620" as="geometry"/>
+                </mxCell>
+                <mxCell id="sec1-principle" value="🔑 Core Principle&amp;#xa;Scheduler ONLY looks at REQUESTS&amp;#xa;for placement decisions.&amp;#xa;Limits are irrelevant to scheduling." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff3e0;strokeColor=#e65100;fontSize=11;fontStyle=1;shadow=1;strokeWidth=2;" parent="1" vertex="1">
+                    <mxGeometry x="40" y="145" width="360" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="sec1-formula" value="📐 Scheduler Check:&amp;#xa;node.allocatable&amp;#xa;− sum(existing_pod_requests)&amp;#xa;≥ new_pod_requests" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fce4ec;strokeColor=#c62828;fontSize=10;fontStyle=1;shadow=1;fontFamily=monospace;" parent="1" vertex="1">
+                    <mxGeometry x="420" y="145" width="220" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="sec1-allocatable" value="📏 Allocatable =&amp;#xa;Capacity − kubeReserved&amp;#xa;− systemReserved&amp;#xa;− evictionThreshold" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f3e5f5;strokeColor=#6a1b9a;fontSize=10;fontStyle=1;shadow=1;fontFamily=monospace;" parent="1" vertex="1">
+                    <mxGeometry x="660" y="145" width="210" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="sec1-cpu" value="⚙️ CPU (Compressible)&amp;#xa;• requests → CFS cpu.shares&amp;#xa;• limits → cpu.cfs_quota_us&amp;#xa;• Exceeding limit → THROTTLED&amp;#xa;  (not killed!)&amp;#xa;• No CPU limit = burst to idle CPU" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#bbdefb;strokeColor=#1976d2;fontSize=10;shadow=1;align=left;spacingLeft=8;" parent="1" vertex="1">
+                    <mxGeometry x="40" y="240" width="260" height="110" as="geometry"/>
+                </mxCell>
+                <mxCell id="sec1-mem" value="🧠 Memory (Incompressible)&amp;#xa;• requests → scheduling + OOM adj&amp;#xa;• limits → memory.limit_in_bytes&amp;#xa;• Exceeding limit → OOM KILLED!&amp;#xa;  (immediate, disruptive)&amp;#xa;• Never overcommit memory &gt;1×" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffcdd2;strokeColor=#c62828;fontSize=10;shadow=1;align=left;spacingLeft=8;" parent="1" vertex="1">
+                    <mxGeometry x="320" y="240" width="260" height="110" as="geometry"/>
+                </mxCell>
+                <mxCell id="sec1-gpu" value="🎮 Extended Resources (GPU etc)&amp;#xa;• Must be integers&amp;#xa;• requests MUST == limits&amp;#xa;• NOT overcommittable&amp;#xa;• Device plugins advertise capacity&amp;#xa;• Use MostAllocated for GPU packing" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e8eaf6;strokeColor=#3949ab;fontSize=10;shadow=1;align=left;spacingLeft=8;" parent="1" vertex="1">
+                    <mxGeometry x="600" y="240" width="260" height="110" as="geometry"/>
+                </mxCell>
+                <mxCell id="sec1-scenarios-hdr" value="⚖️ Request Sizing Impact on Bin Packing" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#263238;strokeColor=#37474f;fontColor=#ffffff;fontSize=12;fontStyle=1;" parent="1" vertex="1">
+                    <mxGeometry x="40" y="365" width="820" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="sec1-too-high" value="📈 Requests ≫ Usage&amp;#xa;• Wasted capacity&amp;#xa;• Low pod density&amp;#xa;• Nodes appear &#39;full&#39;&amp;#xa;  but are actually idle" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff9c4;strokeColor=#f9a825;fontSize=10;shadow=1;align=left;spacingLeft=8;" parent="1" vertex="1">
+                    <mxGeometry x="40" y="400" width="260" height="90" as="geometry"/>
+                </mxCell>
+                <mxCell id="sec1-right" value="✅ Requests ≈ Usage (Ideal)&amp;#xa;• Optimal bin packing&amp;#xa;• Predictable performance&amp;#xa;• Use VPA to find&amp;#xa;  P95 usage → request" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#c8e6c9;strokeColor=#2e7d32;fontSize=10;shadow=1;align=left;spacingLeft=8;strokeWidth=2;" parent="1" vertex="1">
+                    <mxGeometry x="320" y="400" width="260" height="90" as="geometry"/>
+                </mxCell>
+                <mxCell id="sec1-too-low" value="📉 Requests ≪ Usage&amp;#xa;• Overcommitment risk&amp;#xa;• CPU contention&amp;#xa;• Memory OOM kills&amp;#xa;• Node pressure events" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffcdd2;strokeColor=#c62828;fontSize=10;shadow=1;align=left;spacingLeft=8;" parent="1" vertex="1">
+                    <mxGeometry x="600" y="400" width="260" height="90" as="geometry"/>
+                </mxCell>
+                <mxCell id="sec1-tools-hdr" value="🛠️ Right-Sizing Tools" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#263238;strokeColor=#37474f;fontColor=#ffffff;fontSize=12;fontStyle=1;" parent="1" vertex="1">
+                    <mxGeometry x="40" y="505" width="820" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="sec1-vpa" value="📊 VPA (Vertical Pod Autoscaler)&amp;#xa;• Observes actual usage over time&amp;#xa;• Modes: Off | Auto | Initial&amp;#xa;• Target: P95–P99 usage → requests&amp;#xa;• Don&#39;t combine with HPA on CPU" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1bee7;strokeColor=#7b1fa2;fontSize=10;shadow=1;align=left;spacingLeft=8;" parent="1" vertex="1">
+                    <mxGeometry x="40" y="540" width="260" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="sec1-limitrange" value="📏 LimitRange (per namespace)&amp;#xa;• Sets default requests/limits&amp;#xa;• Prevents zero-request pods&amp;#xa;• Fields: default, defaultRequest,&amp;#xa;  min, max, maxLimitRequestRatio" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#b2dfdb;strokeColor=#00695c;fontSize=10;shadow=1;align=left;spacingLeft=8;" parent="1" vertex="1">
+                    <mxGeometry x="320" y="540" width="260" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="sec1-quota" value="🔒 ResourceQuota (per namespace)&amp;#xa;• Aggregate cap on total requests&amp;#xa;• Caps requests.cpu, requests.memory&amp;#xa;• Prevents namespace monopoly&amp;#xa;• Encourages right-sizing" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d1c4e9;strokeColor=#4527a0;fontSize=10;shadow=1;align=left;spacingLeft=8;" parent="1" vertex="1">
+                    <mxGeometry x="600" y="540" width="260" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="sec1-overcommit" value="💡 Overcommit: CPU 1.5–2× OK (throttle is graceful) | Memory ≤1× (OOM is fatal) | Monitor: kube_pod_container_resource_requests / kube_node_status_allocatable" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff8e1;strokeColor=#ff8f00;fontSize=10;fontStyle=2;shadow=1;" parent="1" vertex="1">
+                    <mxGeometry x="40" y="660" width="820" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="sec2-box" value="🏆 2. Quality of Service (QoS) Classes" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fce4ec;strokeColor=#c62828;verticalAlign=top;fontSize=15;fontStyle=1;fontColor=#b71c1c;dashed=1;dashPattern=5 5;strokeWidth=2;" parent="1" vertex="1">
+                    <mxGeometry x="920" y="110" width="860" height="620" as="geometry"/>
+                </mxCell>
+                <mxCell id="sec2-how" value="🔍 QoS is auto-assigned by kubelet based on how requests &amp; limits are set on ALL containers in a pod" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff3e0;strokeColor=#e65100;fontSize=10;fontStyle=2;" parent="1" vertex="1">
+                    <mxGeometry x="940" y="145" width="820" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="sec2-guaranteed" value="🛡️ GUARANTEED&amp;#xa;&amp;#xa;Condition: requests == limits&amp;#xa;for ALL containers (CPU &amp; mem)&amp;#xa;&amp;#xa;oom_score_adj: -997&amp;#xa;Eviction: LAST to be evicted&amp;#xa;&amp;#xa;• Most predictable&amp;#xa;• Worst density (no overcommit)&amp;#xa;• Use for: SLA-bound services" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#c8e6c9;strokeColor=#2e7d32;fontSize=10;shadow=1;align=left;spacingLeft=10;strokeWidth=2;fontStyle=1;" parent="1" vertex="1">
+                    <mxGeometry x="940" y="185" width="260" height="150" as="geometry"/>
+                </mxCell>
+                <mxCell id="sec2-burstable" value="⚡ BURSTABLE&amp;#xa;&amp;#xa;Condition: At least one container&amp;#xa;has request or limit, but NOT equal&amp;#xa;&amp;#xa;oom_score_adj: 2–999 (scaled)&amp;#xa;Eviction: MIDDLE priority&amp;#xa;&amp;#xa;• Sweet spot for density&amp;#xa;• Can burst when headroom exists&amp;#xa;• Use for: General workloads" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff9c4;strokeColor=#f9a825;fontSize=10;shadow=1;align=left;spacingLeft=10;strokeWidth=2;fontStyle=1;" parent="1" vertex="1">
+                    <mxGeometry x="1220" y="185" width="260" height="150" as="geometry"/>
+                </mxCell>
+                <mxCell id="sec2-besteffort" value="🎲 BEST EFFORT&amp;#xa;&amp;#xa;Condition: NO requests or limits&amp;#xa;set on any container&amp;#xa;&amp;#xa;oom_score_adj: 1000&amp;#xa;Eviction: FIRST to be evicted&amp;#xa;&amp;#xa;• Maximum density possible&amp;#xa;• Least reliable&amp;#xa;• Use for: Dev/test, batch jobs" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffcdd2;strokeColor=#c62828;fontSize=10;shadow=1;align=left;spacingLeft=10;strokeWidth=2;fontStyle=1;" parent="1" vertex="1">
+                    <mxGeometry x="1500" y="185" width="260" height="150" as="geometry"/>
+                </mxCell>
+                <mxCell id="sec2-eviction-hdr" value="☠️ Eviction &amp; OOM Kill Order" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#263238;strokeColor=#37474f;fontColor=#ffffff;fontSize=12;fontStyle=1;" parent="1" vertex="1">
+                    <mxGeometry x="940" y="345" width="820" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="sec2-eviction-flow" value="Kubelet eviction order: ❶ BestEffort (usage always &#39;exceeds&#39; 0 requests) → ❷ Burstable exceeding requests → ❸ Guaranteed / Burstable under requests" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffccbc;strokeColor=#bf360c;fontSize=11;fontStyle=1;shadow=1;" parent="1" vertex="1">
+                    <mxGeometry x="940" y="380" width="820" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="sec2-oom" value="📀 OOM Score Formula (Burstable)&amp;#xa;&amp;#xa;oom_score_adj = min(&amp;#xa;  max(2, 1000 − (1000 × memReq / nodeMem)),&amp;#xa;  999&amp;#xa;)&amp;#xa;Higher score = killed first by kernel" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e8eaf6;strokeColor=#283593;fontSize=10;shadow=1;align=left;spacingLeft=10;fontFamily=monospace;" parent="1" vertex="1">
+                    <mxGeometry x="940" y="450" width="400" height="90" as="geometry"/>
+                </mxCell>
+                <mxCell id="sec2-priority" value="🏅 PriorityClass Interaction&amp;#xa;&amp;#xa;• Eviction: Priority checked FIRST,&amp;#xa;  then QoS within same priority&amp;#xa;• Preemption: higher-priority pods&amp;#xa;  evict lower-priority ones&amp;#xa;• Built-in: system-cluster-critical,&amp;#xa;  system-node-critical" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1bee7;strokeColor=#6a1b9a;fontSize=10;shadow=1;align=left;spacingLeft=10;" parent="1" vertex="1">
+                    <mxGeometry x="1360" y="450" width="400" height="90" as="geometry"/>
+                </mxCell>
+                <mxCell id="sec2-pdb" value="🛡️ Pod Disruption Budgets (PDB)&amp;#xa;&amp;#xa;• Protects against VOLUNTARY disruptions (drain, upgrade, preemption)&amp;#xa;• Does NOT protect against involuntary eviction (OOM, node failure)&amp;#xa;• Fields: minAvailable | maxUnavailable + selector&amp;#xa;• Strict PDBs block node scale-down → hurts bin packing efficiency&amp;#xa;• Best: maxUnavailable=1 for stateless services" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#b2dfdb;strokeColor=#00695c;fontSize=10;shadow=1;align=left;spacingLeft=10;" parent="1" vertex="1">
+                    <mxGeometry x="940" y="550" width="820" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="sec2-density" value="💡 Density Impact: Guaranteed = no overcommit (worst density) | Burstable = controlled overcommit (best tradeoff) | BestEffort = unlimited density (most risk)&amp;#xa;Practical: Set requests = P50 usage, limits = P99 → Burstable QoS with good density + safety" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff8e1;strokeColor=#ff8f00;fontSize=10;fontStyle=2;shadow=1;" parent="1" vertex="1">
+                    <mxGeometry x="940" y="660" width="820" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="sec3-box" value="🎯 3. Scheduler Placement Strategies" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e8f5e9;strokeColor=#2e7d32;verticalAlign=top;fontSize=15;fontStyle=1;fontColor=#1b5e20;dashed=1;dashPattern=5 5;strokeWidth=2;" parent="1" vertex="1">
+                    <mxGeometry x="20" y="750" width="860" height="700" as="geometry"/>
+                </mxCell>
+                <mxCell id="sec3-scoring-hdr" value="📊 NodeResourcesFit Plugin — The #1 Bin Packing Lever" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#263238;strokeColor=#37474f;fontColor=#ffffff;fontSize=12;fontStyle=1;" parent="1" vertex="1">
+                    <mxGeometry x="40" y="790" width="820" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="sec3-least" value="🔵 LeastAllocated (DEFAULT)&amp;#xa;&amp;#xa;• Scores higher for nodes with&amp;#xa;  MORE free resources&amp;#xa;• SPREADS pods across nodes&amp;#xa;• Anti-bin packing behavior&amp;#xa;• Good for HA, bad for cost" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#bbdefb;strokeColor=#1565c0;fontSize=10;shadow=1;align=left;spacingLeft=10;" parent="1" vertex="1">
+                    <mxGeometry x="40" y="825" width="260" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="sec3-most" value="🔴 MostAllocated (BIN PACKING)&amp;#xa;&amp;#xa;• Scores higher for nodes with&amp;#xa;  LESS free resources&amp;#xa;• PACKS pods tightly&amp;#xa;• Enables node scale-down&amp;#xa;• Set via KubeSchedulerConfig" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffcdd2;strokeColor=#c62828;fontSize=10;shadow=1;align=left;spacingLeft=10;strokeWidth=2;" parent="1" vertex="1">
+                    <mxGeometry x="320" y="825" width="260" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="sec3-ratio" value="🟠 RequestedToCapacityRatio&amp;#xa;&amp;#xa;• Custom scoring curve&amp;#xa;• shape: [{util:0,score:0},&amp;#xa;  {util:100,score:10}] = pack&amp;#xa;• Per-resource weights&amp;#xa;• Best for scarce resources (GPU)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff9c4;strokeColor=#f9a825;fontSize=10;shadow=1;align=left;spacingLeft=10;" parent="1" vertex="1">
+                    <mxGeometry x="600" y="825" width="260" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="sec3-constrain-hdr" value="🔧 Placement Constraints (affect where pods CAN go)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#263238;strokeColor=#37474f;fontColor=#ffffff;fontSize=12;fontStyle=1;" parent="1" vertex="1">
+                    <mxGeometry x="40" y="940" width="820" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="sec3-topo" value="🌐 Topology Spread Constraints&amp;#xa;&amp;#xa;• maxSkew: max pod count diff&amp;#xa;• topologyKey: zone, hostname&amp;#xa;• whenUnsatisfiable: DoNotSchedule&amp;#xa;  or ScheduleAnyway&amp;#xa;• Strict spread FIGHTS bin packing&amp;#xa;• Relax maxSkew for better density" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#b3e5fc;strokeColor=#0277bd;fontSize=10;shadow=1;align=left;spacingLeft=10;" parent="1" vertex="1">
+                    <mxGeometry x="40" y="975" width="260" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="sec3-affinity" value="🧲 Pod Affinity / Anti-Affinity&amp;#xa;&amp;#xa;• podAffinity: attracts pods together&amp;#xa;  → INCREASES density&amp;#xa;• podAntiAffinity: repels pods&amp;#xa;  → DECREASES density&amp;#xa;• Hard: required... | Soft: preferred...&amp;#xa;• Anti-affinity per hostname = 1/node" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#c8e6c9;strokeColor=#388e3c;fontSize=10;shadow=1;align=left;spacingLeft=10;" parent="1" vertex="1">
+                    <mxGeometry x="320" y="975" width="260" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="sec3-taints" value="☢️ Taints &amp; Tolerations&amp;#xa;&amp;#xa;• Taints on nodes restrict pods&amp;#xa;• Effects: NoSchedule |&amp;#xa;  PreferNoSchedule | NoExecute&amp;#xa;• Pods must tolerate taints&amp;#xa;• Use for dedicated node pools&amp;#xa;• Pressure taints auto-applied" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe0b2;strokeColor=#e65100;fontSize=10;shadow=1;align=left;spacingLeft=10;" parent="1" vertex="1">
+                    <mxGeometry x="600" y="975" width="260" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="sec3-nodeaff" value="🏯 Node Affinity / nodeSelector&amp;#xa;&amp;#xa;• nodeSelector: simple key=value match&amp;#xa;• nodeAffinity: richer syntax with&amp;#xa;  operators (In, NotIn, Exists, Gt, Lt)&amp;#xa;• Hard: required... | Soft: preferred...&amp;#xa;• Constrains eligible node set →&amp;#xa;  concentrates pods or restricts scope" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f3e5f5;strokeColor=#7b1fa2;fontSize=10;shadow=1;align=left;spacingLeft=10;" parent="1" vertex="1">
+                    <mxGeometry x="40" y="1090" width="260" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="sec3-preempt" value="⚡ Priority &amp; Preemption&amp;#xa;&amp;#xa;• PriorityClass: value (int, max 1B)&amp;#xa;• Higher-priority pods scheduled first&amp;#xa;• Can EVICT lower-priority pods&amp;#xa;• preemptionPolicy: PreemptLower&amp;#xa;  Priority | Never&amp;#xa;• Re-packs nodes around critical pods" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffccbc;strokeColor=#bf360c;fontSize=10;shadow=1;align=left;spacingLeft=10;" parent="1" vertex="1">
+                    <mxGeometry x="320" y="1090" width="260" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="sec3-desched" value="🔄 Descheduler (post-placement)&amp;#xa;&amp;#xa;• Runs as CronJob/Deployment&amp;#xa;• HighNodeUtilization: evicts from&amp;#xa;  underutilized nodes → bin packing&amp;#xa;• Must pair with MostAllocated&amp;#xa;• Also: RemoveDuplicates,&amp;#xa;  rebalance topology violations" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1bee7;strokeColor=#8e24aa;fontSize=10;shadow=1;align=left;spacingLeft=10;" parent="1" vertex="1">
+                    <mxGeometry x="600" y="1090" width="260" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="sec3-profiles" value="📐 Custom Scheduler Profiles&amp;#xa;&amp;#xa;• Multiple profiles per kube-scheduler, each with unique schedulerName&amp;#xa;• Pods select via spec.schedulerName&amp;#xa;• Tune scoring weights per profile&amp;#xa;• Disable NodeResourcesBalancedAllocation (fights bin packing)&amp;#xa;• Boost NodeResourcesFit weight to 10+" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e0f7fa;strokeColor=#006064;fontSize=10;shadow=1;align=left;spacingLeft=10;" parent="1" vertex="1">
+                    <mxGeometry x="40" y="1200" width="820" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="sec3-recipe" value="🚀 Bin Packing Recipe: ❶ Set MostAllocated scoring → ❷ Disable BalancedAllocation → ❸ Relax topology spread → ❹ Run HighNodeUtilization descheduler → ❺ Tune per-resource weights" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#c8e6c9;strokeColor=#1b5e20;fontSize=11;fontStyle=1;shadow=1;strokeWidth=2;" parent="1" vertex="1">
+                    <mxGeometry x="40" y="1310" width="820" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="sec4-box" value="⚠️ 4. Node Pressure Events &amp; Eviction" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff3e0;strokeColor=#e65100;verticalAlign=top;fontSize=15;fontStyle=1;fontColor=#bf360c;dashed=1;dashPattern=5 5;strokeWidth=2;" parent="1" vertex="1">
+                    <mxGeometry x="920" y="750" width="860" height="700" as="geometry"/>
+                </mxCell>
+                <mxCell id="sec4-pressures-hdr" value="🚨 Node Condition Pressures (kubelet monitors continuously)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#263238;strokeColor=#37474f;fontColor=#ffffff;fontSize=12;fontStyle=1;" parent="1" vertex="1">
+                    <mxGeometry x="940" y="790" width="820" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="sec4-mempressure" value="🧠 MemoryPressure&amp;#xa;&amp;#xa;Signal: memory.available&amp;#xa;Hard default: &lt; 100Mi&amp;#xa;Taint: node.kubernetes.io/&amp;#xa;  memory-pressure:NoSchedule" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffcdd2;strokeColor=#c62828;fontSize=10;shadow=1;align=left;spacingLeft=8;" parent="1" vertex="1">
+                    <mxGeometry x="940" y="825" width="200" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="sec4-diskpressure" value="💾 DiskPressure&amp;#xa;&amp;#xa;Signal: nodefs.available&amp;#xa;Hard default: &lt; 10%&amp;#xa;Taint: node.kubernetes.io/&amp;#xa;  disk-pressure:NoSchedule" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff9c4;strokeColor=#f9a825;fontSize=10;shadow=1;align=left;spacingLeft=8;" parent="1" vertex="1">
+                    <mxGeometry x="1150" y="825" width="200" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="sec4-pidpressure" value="🔢 PIDPressure&amp;#xa;&amp;#xa;Signal: pid.available&amp;#xa;= maxpid − curproc&amp;#xa;Taint: node.kubernetes.io/&amp;#xa;  pid-pressure:NoSchedule" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1bee7;strokeColor=#7b1fa2;fontSize=10;shadow=1;align=left;spacingLeft=8;" parent="1" vertex="1">
+                    <mxGeometry x="1360" y="825" width="200" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="sec4-network" value="🌐 NetworkUnavailable&amp;#xa;&amp;#xa;Set by cloud/network provider&amp;#xa;No eviction signal&amp;#xa;Taint: node.kubernetes.io/&amp;#xa;  network-unavailable" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e8eaf6;strokeColor=#283593;fontSize=10;shadow=1;align=left;spacingLeft=8;" parent="1" vertex="1">
+                    <mxGeometry x="1570" y="825" width="200" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="sec4-eviction-hdr" value="🚦 Eviction Thresholds" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#263238;strokeColor=#37474f;fontColor=#ffffff;fontSize=12;fontStyle=1;" parent="1" vertex="1">
+                    <mxGeometry x="940" y="920" width="820" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="sec4-hard" value="🟥 Hard Eviction (IMMEDIATE)&amp;#xa;&amp;#xa;• No grace period honored&amp;#xa;• Defaults:&amp;#xa;  memory.available &lt; 100Mi&amp;#xa;  nodefs.available &lt; 10%&amp;#xa;  imagefs.available &lt; 15%&amp;#xa;  nodefs.inodesFree &lt; 5%" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffcdd2;strokeColor=#c62828;fontSize=10;shadow=1;align=left;spacingLeft=10;strokeWidth=2;" parent="1" vertex="1">
+                    <mxGeometry x="940" y="955" width="400" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="sec4-soft" value="🟨 Soft Eviction (WITH grace period)&amp;#xa;&amp;#xa;• Signal must persist for grace period&amp;#xa;• eviction-soft: memory.available&lt;1.5Gi&amp;#xa;• eviction-soft-grace-period: 1m30s&amp;#xa;• eviction-max-pod-grace-period caps&amp;#xa;  terminationGracePeriodSeconds&amp;#xa;• Damped by transition-period (5m)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff9c4;strokeColor=#f9a825;fontSize=10;shadow=1;align=left;spacingLeft=10;" parent="1" vertex="1">
+                    <mxGeometry x="1360" y="955" width="400" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="sec4-what-hdr" value="🔄 What Happens When Node Is Under Pressure" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#263238;strokeColor=#37474f;fontColor=#ffffff;fontSize=12;fontStyle=1;" parent="1" vertex="1">
+                    <mxGeometry x="940" y="1070" width="820" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="sec4-sequence" value="❶ Kubelet detects signal crosses threshold&amp;#xa;❷ Node condition set: e.g. MemoryPressure=True&amp;#xa;❸ Taint auto-applied: memory-pressure:NoSchedule&amp;#xa;❹ Scheduler STOPS placing new pods on this node&amp;#xa;❺ Kubelet garbage collects dead pods/containers/images&amp;#xa;❻ If still over threshold → evicts end-user pods&amp;#xa;❼ Evicted pods get phase=Failed, reason=Evicted&amp;#xa;❽ PDB is NOT respected during pressure eviction&amp;#xa;❾ Controllers create replacement pods on other nodes" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffccbc;strokeColor=#bf360c;fontSize=10;shadow=1;align=left;spacingLeft=12;fontStyle=1;" parent="1" vertex="1">
+                    <mxGeometry x="940" y="1105" width="500" height="140" as="geometry"/>
+                </mxCell>
+                <mxCell id="sec4-reserved" value="📦 Reserved Resources&amp;#xa;&amp;#xa;kubeReserved: for kubelet + runtime&amp;#xa;  cpu, memory, ephemeral-storage, pid&amp;#xa;&amp;#xa;systemReserved: for OS daemons&amp;#xa;  sshd, udev, kernel&amp;#xa;&amp;#xa;enforceNodeAllocatable: [pods]&amp;#xa;  can add: kube-reserved, system-reserved&amp;#xa;&amp;#xa;💡 Size reserves proportional to pod density!" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e0f7fa;strokeColor=#006064;fontSize=10;shadow=1;align=left;spacingLeft=10;" parent="1" vertex="1">
+                    <mxGeometry x="1480" y="1105" width="280" height="140" as="geometry"/>
+                </mxCell>
+                <mxCell id="sec4-impact" value="💥 Impact on Bin Packing: Aggressive packing → shrinks buffer between usage &amp; eviction threshold → frequent pressure events → pod churn &amp;amp; cascading evictions&amp;#xa;Mitigation: Size kubeReserved/systemReserved proportionally | Raise eviction thresholds (e.g. 500Mi) | Use eviction-minimum-reclaim | Set requests ≈ limits (Guaranteed QoS)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff8e1;strokeColor=#ff8f00;fontSize=10;fontStyle=2;shadow=1;" parent="1" vertex="1">
+                    <mxGeometry x="940" y="1260" width="820" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="sec4-rule" value="💡 Rule of Thumb: Gap between sum(requests) and Allocatable = your safety margin. Bin packing shrinks this gap. Plan eviction thresholds and reserved resources accordingly!" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#c8e6c9;strokeColor=#1b5e20;fontSize=11;fontStyle=1;shadow=1;strokeWidth=2;" parent="1" vertex="1">
+                    <mxGeometry x="940" y="1340" width="820" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="e-req-qos" value="determines QoS class" style="edgeStyle=orthogonalEdgeStyle;strokeColor=#1565c0;strokeWidth=2;fontSize=9;fontColor=#1565c0;dashed=1;labelBackgroundColor=#ffffff;exitX=1;exitY=0;exitDx=0;exitDy=0;entryX=0;entryY=0;entryDx=0;entryDy=0;rounded=1;" parent="1" source="sec1-principle" target="sec2-how" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e-cpu-burstable" value="enables burst" style="edgeStyle=orthogonalEdgeStyle;strokeColor=#0277bd;strokeWidth=1;fontSize=9;fontColor=#0277bd;dashed=1;labelBackgroundColor=#ffffff;exitX=1;exitY=1;exitDx=0;exitDy=0;entryX=0;entryY=0;entryDx=0;entryDy=0;rounded=1;" parent="1" source="sec1-cpu" target="sec2-burstable" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e-mem-oom" value="OOM when exceeded" style="edgeStyle=orthogonalEdgeStyle;strokeColor=#c62828;strokeWidth=1;fontSize=9;fontColor=#c62828;dashed=1;labelBackgroundColor=#ffffff;exitX=1;exitY=1;exitDx=0;exitDy=0;entryX=0;entryY=0;entryDx=0;entryDy=0;rounded=1;" parent="1" source="sec1-mem" target="sec2-oom" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e-toolow-pressure" value="causes pressure events" style="edgeStyle=orthogonalEdgeStyle;strokeColor=#e65100;strokeWidth=2;fontSize=9;fontColor=#e65100;dashed=1;labelBackgroundColor=#ffffff;exitX=1;exitY=1;exitDx=0;exitDy=0;entryX=0;entryY=0;entryDx=0;entryDy=0;rounded=1;" parent="1" source="sec1-too-low" target="sec4-mempressure" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e-scheduler-req" value="uses requests for scoring" style="edgeStyle=orthogonalEdgeStyle;strokeColor=#2e7d32;strokeWidth=2;fontSize=9;fontColor=#2e7d32;dashed=1;labelBackgroundColor=#ffffff;exitX=0;exitY=0;exitDx=0;exitDy=0;entryX=0;entryY=1;entryDx=0;entryDy=0;rounded=1;" parent="1" source="sec3-most" target="sec1-formula" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e-pressure-eviction" value="triggers eviction per QoS order" style="edgeStyle=orthogonalEdgeStyle;strokeColor=#bf360c;strokeWidth=2;fontSize=9;fontColor=#bf360c;dashed=1;labelBackgroundColor=#ffffff;exitX=1;exitY=0;exitDx=0;exitDy=0;entryX=1;entryY=1;entryDx=0;entryDy=0;rounded=1;" parent="1" source="sec4-sequence" target="sec2-eviction-flow" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e-pressure-taint" value="auto-taints nodes" style="edgeStyle=orthogonalEdgeStyle;strokeColor=#d84315;strokeWidth=1;fontSize=9;fontColor=#d84315;dashed=1;labelBackgroundColor=#ffffff;exitX=0;exitY=1;exitDx=0;exitDy=0;entryX=1;entryY=0;entryDx=0;entryDy=0;rounded=1;" parent="1" source="sec4-mempressure" target="sec3-taints" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e-desched-pressure" value="prevents via rebalancing" style="edgeStyle=orthogonalEdgeStyle;strokeColor=#558b2f;strokeWidth=1;fontSize=9;fontColor=#558b2f;dashed=1;labelBackgroundColor=#ffffff;exitX=1;exitY=1;exitDx=0;exitDy=0;entryX=0;entryY=0;entryDx=0;entryDy=0;rounded=1;" parent="1" source="sec3-desched" target="sec4-impact" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e-priority-preempt" value="PriorityClass drives both" style="edgeStyle=orthogonalEdgeStyle;strokeColor=#6a1b9a;strokeWidth=1;fontSize=9;fontColor=#6a1b9a;dashed=1;labelBackgroundColor=#ffffff;exitX=0;exitY=1;exitDx=0;exitDy=0;entryX=1;entryY=0;entryDx=0;entryDy=0;rounded=1;" parent="1" source="sec2-priority" target="sec3-preempt" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e-pdb-desched" value="constrains descheduling" style="edgeStyle=orthogonalEdgeStyle;strokeColor=#00695c;strokeWidth=1;fontSize=9;fontColor=#00695c;dashed=1;labelBackgroundColor=#ffffff;exitX=0;exitY=1;exitDx=0;exitDy=0;entryX=1;entryY=0;entryDx=0;entryDy=0;rounded=1;" parent="1" source="sec2-pdb" target="sec3-desched" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e-vpa-right" value="right-sizes requests" style="edgeStyle=orthogonalEdgeStyle;strokeColor=#2e7d32;strokeWidth=1;fontSize=9;fontColor=#2e7d32;dashed=1;labelBackgroundColor=#ffffff;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;rounded=1;" parent="1" source="sec1-vpa" target="sec1-right" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e-alloc-reserved" value="feeds into allocatable" style="edgeStyle=orthogonalEdgeStyle;strokeColor=#6a1b9a;strokeWidth=1;fontSize=9;fontColor=#6a1b9a;dashed=1;labelBackgroundColor=#ffffff;exitX=1;exitY=0;exitDx=0;exitDy=0;entryX=1;entryY=1;entryDx=0;entryDy=0;rounded=1;" parent="1" source="sec4-reserved" target="sec1-allocatable" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e-guaranteed-burstable" value="more density →" style="edgeStyle=orthogonalEdgeStyle;rounded=1;fontSize=11;fontFamily=Helvetica;labelBackgroundColor=#ffffff;rounded=1;strokeColor=#2e7d32;strokeWidth=2;fontSize=9;fontColor=#2e7d32;labelBackgroundColor=#ffffff;" parent="1" source="sec2-guaranteed" target="sec2-burstable" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e-burstable-best" value="max density →" style="edgeStyle=orthogonalEdgeStyle;rounded=1;fontSize=11;fontFamily=Helvetica;labelBackgroundColor=#ffffff;rounded=1;strokeColor=#f9a825;strokeWidth=2;fontSize=9;fontColor=#f9a825;labelBackgroundColor=#ffffff;" parent="1" source="sec2-burstable" target="sec2-besteffort" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e-least-most" value="opposite strategies" style="edgeStyle=orthogonalEdgeStyle;rounded=1;fontSize=11;fontFamily=Helvetica;labelBackgroundColor=#ffffff;rounded=1;strokeColor=#455a64;strokeWidth=2;fontSize=10;fontStyle=1;fontColor=#455a64;labelBackgroundColor=#ffffff;" parent="1" source="sec3-least" target="sec3-most" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e-hard-soft" value="vs grace period" style="edgeStyle=orthogonalEdgeStyle;rounded=1;fontSize=11;fontFamily=Helvetica;labelBackgroundColor=#ffffff;rounded=1;strokeColor=#455a64;strokeWidth=2;fontSize=10;fontStyle=1;fontColor=#455a64;labelBackgroundColor=#ffffff;" parent="1" source="sec4-hard" target="sec4-soft" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+    <diagram id="sUDPKJ9JjhVUEfG2zehT" name="Bin Packing City">
+        <mxGraphModel dx="1353" dy="692" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="city-sky" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#0D47A1;strokeColor=none;opacity=60;" parent="1" vertex="1">
+                    <mxGeometry width="2300" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="city-title" value="⎈ BIN PACKING CITY" style="ellipse;shape=cloud;whiteSpace=wrap;html=1;fillColor=#E3F2FD;strokeColor=#1565C0;fontSize=28;fontStyle=1;fontColor=#0D47A1;shadow=1;strokeWidth=3;" parent="1" vertex="1">
+                    <mxGeometry x="550" y="5" width="1100" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="city-subtitle" value="A map of all levers to control pod density on Kubernetes nodes" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=12;fontStyle=2;fontColor=#BBDEFB;" parent="1" vertex="1">
+                    <mxGeometry x="600" y="78" width="1000" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="harbor-zone" value="⚓ RESOURCE HARBOR" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E3F2FD;strokeColor=#1565C0;verticalAlign=top;fontSize=16;fontStyle=1;fontColor=#0D47A1;dashed=1;dashPattern=8 4;strokeWidth=3;arcSize=8;shadow=1;" parent="1" vertex="1">
+                    <mxGeometry x="10" y="110" width="750" height="870" as="geometry"/>
+                </mxCell>
+                <mxCell id="harbor-principle" value="🔑 CORE LAW&amp;#xa;&amp;#xa;The Scheduler ONLY&amp;#xa;looks at REQUESTS&amp;#xa;to place pods.&amp;#xa;Limits don&#39;t matter&amp;#xa;for scheduling!" style="shape=hexagon;perimeter=hexagonPerimeter2;whiteSpace=wrap;html=1;fillColor=#FFF3E0;strokeColor=#E65100;fontSize=11;fontStyle=1;shadow=1;strokeWidth=2;size=0.15;" parent="1" vertex="1">
+                    <mxGeometry x="35" y="155" width="240" height="140" as="geometry"/>
+                </mxCell>
+                <mxCell id="harbor-formula" value="node.allocatable&amp;#xa;− Σ(pod requests)&amp;#xa;≥ new pod req" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fillColor=#FCE4EC;strokeColor=#C62828;fontSize=11;fontStyle=1;shadow=1;fontFamily=monospace;size=0.12;" parent="1" vertex="1">
+                    <mxGeometry x="310" y="155" width="220" height="90" as="geometry"/>
+                </mxCell>
+                <mxCell id="harbor-allocatable" value="Allocatable = Capacity&amp;#xa;− kubeReserved&amp;#xa;− systemReserved&amp;#xa;− evictionThreshold" style="shape=step;perimeter=stepPerimeter;whiteSpace=wrap;html=1;fillColor=#F3E5F5;strokeColor=#6A1B9A;fontSize=9;fontStyle=1;shadow=1;size=0.15;" parent="1" vertex="1">
+                    <mxGeometry x="555" y="150" width="190" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="harbor-cpu" value="⚙️ CPU CARGO&amp;#xa;(Compressible)&amp;#xa;&amp;#xa;req → cpu.shares&amp;#xa;lim → cfs_quota&amp;#xa;Exceed = THROTTLE&amp;#xa;No limit = burst OK" style="shape=trapezoid;perimeter=trapezoidPerimeter;whiteSpace=wrap;html=1;fillColor=#BBDEFB;strokeColor=#1565C0;fontSize=10;shadow=1;align=left;spacingLeft=12;strokeWidth=2;size=0.08;" parent="1" vertex="1">
+                    <mxGeometry x="25" y="320" width="220" height="150" as="geometry"/>
+                </mxCell>
+                <mxCell id="harbor-mem" value="🧠 MEMORY CARGO&amp;#xa;(Incompressible)&amp;#xa;&amp;#xa;req → OOM score adj&amp;#xa;lim → mem.limit_bytes&amp;#xa;Exceed = OOM KILL!&amp;#xa;Never overcommit &gt;1×" style="shape=trapezoid;perimeter=trapezoidPerimeter;whiteSpace=wrap;html=1;fillColor=#FFCDD2;strokeColor=#C62828;fontSize=10;shadow=1;align=left;spacingLeft=12;strokeWidth=2;size=0.08;" parent="1" vertex="1">
+                    <mxGeometry x="265" y="325" width="220" height="150" as="geometry"/>
+                </mxCell>
+                <mxCell id="harbor-gpu" value="🎮 GPU CARGO&amp;#xa;(Extended Res)&amp;#xa;&amp;#xa;Must be integers&amp;#xa;req MUST == limits&amp;#xa;NOT overcommittable&amp;#xa;Device plugins only" style="shape=trapezoid;perimeter=trapezoidPerimeter;whiteSpace=wrap;html=1;fillColor=#E8EAF6;strokeColor=#283593;fontSize=10;shadow=1;align=left;spacingLeft=12;strokeWidth=2;size=0.08;" parent="1" vertex="1">
+                    <mxGeometry x="505" y="320" width="220" height="150" as="geometry"/>
+                </mxCell>
+                <mxCell id="harbor-sizing-sign" value="⚖️ CARGO SIZING DOCK" style="shape=process;whiteSpace=wrap;html=1;fillColor=#263238;strokeColor=#37474F;fontColor=#ECEFF1;fontSize=13;fontStyle=1;size=0.04;" parent="1" vertex="1">
+                    <mxGeometry x="30" y="490" width="700" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="harbor-toohigh" value="🟡&amp;#xa;TOO HEAVY&amp;#xa;(req ≫ usage)&amp;#xa;&amp;#xa;Wasted capacity&amp;#xa;Low pod density&amp;#xa;Nodes look full&amp;#xa;but idle" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFF9C4;strokeColor=#F9A825;fontSize=10;shadow=1;strokeWidth=2;" parent="1" vertex="1">
+                    <mxGeometry x="40" y="535" width="200" height="140" as="geometry"/>
+                </mxCell>
+                <mxCell id="harbor-right" value="🟢&amp;#xa;JUST RIGHT&amp;#xa;(req ≈ usage)&amp;#xa;&amp;#xa;Optimal packing&amp;#xa;Predictable perf&amp;#xa;VPA → P95 usage&amp;#xa;= request" style="rhombus;whiteSpace=wrap;html=1;fillColor=#C8E6C9;strokeColor=#2E7D32;fontSize=10;shadow=1;strokeWidth=3;" parent="1" vertex="1">
+                    <mxGeometry x="270" y="540" width="200" height="140" as="geometry"/>
+                </mxCell>
+                <mxCell id="harbor-toolow" value="🔴&amp;#xa;TOO LIGHT&amp;#xa;(req ≪ usage)&amp;#xa;&amp;#xa;Overcommit risk&amp;#xa;CPU contention&amp;#xa;OOM kills&amp;#xa;Pressure events" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFCDD2;strokeColor=#C62828;fontSize=10;shadow=1;strokeWidth=2;" parent="1" vertex="1">
+                    <mxGeometry x="500" y="535" width="200" height="140" as="geometry"/>
+                </mxCell>
+                <mxCell id="harbor-vpa" value="🏗️ VPA CRANE&amp;#xa;&amp;#xa;Observes actual usage&amp;#xa;Modes: Off|Auto|Initial&amp;#xa;Target P95–P99 → req&amp;#xa;Don&#39;t mix with HPA" style="shape=cylinder3;whiteSpace=wrap;html=1;fillColor=#E1BEE7;strokeColor=#7B1FA2;fontSize=10;shadow=1;align=left;spacingLeft=10;boundedLbl=1;backgroundOutline=1;size=18;strokeWidth=2;" parent="1" vertex="1">
+                    <mxGeometry x="30" y="700" width="210" height="130" as="geometry"/>
+                </mxCell>
+                <mxCell id="harbor-limitrange" value="⚖️ LIMIT SCALE&amp;#xa;&amp;#xa;Per-NS defaults&amp;#xa;Prevents zero-req pods&amp;#xa;default, defaultRequest&amp;#xa;min, max, ratio" style="shape=cylinder3;whiteSpace=wrap;html=1;fillColor=#B2DFDB;strokeColor=#00695C;fontSize=10;shadow=1;align=left;spacingLeft=10;boundedLbl=1;backgroundOutline=1;size=18;strokeWidth=2;" parent="1" vertex="1">
+                    <mxGeometry x="265" y="705" width="210" height="130" as="geometry"/>
+                </mxCell>
+                <mxCell id="harbor-quota" value="🔐 QUOTA VAULT&amp;#xa;&amp;#xa;Per-NS aggregate cap&amp;#xa;Caps req.cpu/mem&amp;#xa;Prevents monopoly&amp;#xa;Encourages right-sizing" style="shape=cylinder3;whiteSpace=wrap;html=1;fillColor=#D1C4E9;strokeColor=#4527A0;fontSize=10;shadow=1;align=left;spacingLeft=10;boundedLbl=1;backgroundOutline=1;size=18;strokeWidth=2;" parent="1" vertex="1">
+                    <mxGeometry x="500" y="700" width="210" height="130" as="geometry"/>
+                </mxCell>
+                <mxCell id="harbor-overcommit" value="🚧 OVERCOMMIT: CPU 1.5–2× safe (throttle) | Memory ≤1× only (OOM fatal)" style="shape=callout;whiteSpace=wrap;html=1;fillColor=#FFF8E1;strokeColor=#FF8F00;fontSize=10;fontStyle=2;shadow=1;perimeter=calloutPerimeter;size=20;position=0.5;position2=0.5;base=30;" parent="1" vertex="1">
+                    <mxGeometry x="30" y="855" width="710" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="sched-zone" value="🏙️ SCHEDULER CENTRAL" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8F5E9;strokeColor=#2E7D32;verticalAlign=top;fontSize=16;fontStyle=1;fontColor=#1B5E20;dashed=1;dashPattern=8 4;strokeWidth=3;arcSize=8;shadow=1;" parent="1" vertex="1">
+                    <mxGeometry x="780" y="110" width="620" height="870" as="geometry"/>
+                </mxCell>
+                <mxCell id="sched-tower" value="🏢 CONTROL TOWER&amp;#xa;NodeResourcesFit Plugin — The #1 Bin Packing Lever" style="shape=hexagon;perimeter=hexagonPerimeter2;whiteSpace=wrap;html=1;fillColor=#1B5E20;strokeColor=#2E7D32;fontSize=12;fontStyle=1;fontColor=#FFFFFF;shadow=1;strokeWidth=3;size=0.08;" parent="1" vertex="1">
+                    <mxGeometry x="805" y="150" width="570" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="sched-least" value="🔵 SPREAD MODE&amp;#xa;LeastAllocated&amp;#xa;(DEFAULT)&amp;#xa;&amp;#xa;Scores nodes with&amp;#xa;MORE free resources&amp;#xa;higher → spreads pods&amp;#xa;Good for HA&amp;#xa;Bad for cost" style="ellipse;whiteSpace=wrap;html=1;fillColor=#BBDEFB;strokeColor=#1565C0;fontSize=10;shadow=1;strokeWidth=2;" parent="1" vertex="1">
+                    <mxGeometry x="800" y="250" width="175" height="150" as="geometry"/>
+                </mxCell>
+                <mxCell id="sched-most" value="🔴 PACK MODE&amp;#xa;MostAllocated&amp;#xa;&amp;#xa;Scores nodes with&amp;#xa;LESS free resources&amp;#xa;higher → packs tight&amp;#xa;Enables scale-down&amp;#xa;Set in KubeScheduler&amp;#xa;Configuration" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFCDD2;strokeColor=#C62828;fontSize=10;shadow=1;strokeWidth=3;" parent="1" vertex="1">
+                    <mxGeometry x="1000" y="245" width="180" height="150" as="geometry"/>
+                </mxCell>
+                <mxCell id="sched-ratio" value="🟠 CUSTOM MODE&amp;#xa;RequestedTo&amp;#xa;CapacityRatio&amp;#xa;&amp;#xa;Custom scoring curve&amp;#xa;shape points&amp;#xa;Per-resource weights&amp;#xa;Best for GPU/scarce" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFF9C4;strokeColor=#F9A825;fontSize=10;shadow=1;strokeWidth=2;" parent="1" vertex="1">
+                    <mxGeometry x="1200" y="250" width="175" height="150" as="geometry"/>
+                </mxCell>
+                <mxCell id="sched-constraints-sign" value="🚧 TRAFFIC RULES (Placement Constraints)" style="shape=process;whiteSpace=wrap;html=1;fillColor=#263238;strokeColor=#37474F;fontColor=#ECEFF1;fontSize=12;fontStyle=1;size=0.04;" parent="1" vertex="1">
+                    <mxGeometry x="805" y="415" width="570" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="sched-topo" value="🌐 ZONE MAP&amp;#xa;Topology Spread&amp;#xa;&amp;#xa;maxSkew: diff limit&amp;#xa;topologyKey: zone/host&amp;#xa;Strict spread FIGHTS&amp;#xa;bin packing!&amp;#xa;Relax for density" style="ellipse;shape=cloud;whiteSpace=wrap;html=1;fillColor=#B3E5FC;strokeColor=#0277BD;fontSize=9;shadow=1;strokeWidth=2;" parent="1" vertex="1">
+                    <mxGeometry x="795" y="455" width="200" height="115" as="geometry"/>
+                </mxCell>
+                <mxCell id="sched-affinity" value="🧲 MAGNETS&amp;#xa;Pod Affinity&amp;#xa;&amp;#xa;podAffinity →&amp;#xa;  pulls together&amp;#xa;podAntiAffinity →&amp;#xa;  pushes apart&amp;#xa;Hard vs Soft rules" style="ellipse;shape=cloud;whiteSpace=wrap;html=1;fillColor=#C8E6C9;strokeColor=#388E3C;fontSize=9;shadow=1;strokeWidth=2;" parent="1" vertex="1">
+                    <mxGeometry x="1005" y="460" width="200" height="115" as="geometry"/>
+                </mxCell>
+                <mxCell id="sched-taints" value="☢️ FENCES&amp;#xa;Taints &amp; Tolerations&amp;#xa;&amp;#xa;NoSchedule: hard wall&amp;#xa;PreferNoSchedule: soft&amp;#xa;NoExecute: evicts too&amp;#xa;Dedicated node pools&amp;#xa;Pressure auto-taints" style="ellipse;shape=cloud;whiteSpace=wrap;html=1;fillColor=#FFE0B2;strokeColor=#E65100;fontSize=9;shadow=1;strokeWidth=2;" parent="1" vertex="1">
+                    <mxGeometry x="1215" y="455" width="200" height="115" as="geometry"/>
+                </mxCell>
+                <mxCell id="sched-nodeaff" value="🧭 NODE COMPASS&amp;#xa;Node Affinity&amp;#xa;&amp;#xa;nodeSelector: simple k=v&amp;#xa;nodeAffinity: richer&amp;#xa;Operators: In, NotIn,&amp;#xa;Exists, Gt, Lt" style="shape=trapezoid;perimeter=trapezoidPerimeter;whiteSpace=wrap;html=1;fillColor=#F3E5F5;strokeColor=#7B1FA2;fontSize=9;shadow=1;size=0.1;strokeWidth=2;" parent="1" vertex="1">
+                    <mxGeometry x="800" y="590" width="175" height="110" as="geometry"/>
+                </mxCell>
+                <mxCell id="sched-preempt" value="⚡ PRIORITY GATE&amp;#xa;Preemption&amp;#xa;&amp;#xa;PriorityClass: int value&amp;#xa;Hi-pri pods jump queue&amp;#xa;Can EVICT lo-pri pods&amp;#xa;Re-packs around critical" style="shape=trapezoid;perimeter=trapezoidPerimeter;whiteSpace=wrap;html=1;fillColor=#FFCCBC;strokeColor=#BF360C;fontSize=9;shadow=1;size=0.1;strokeWidth=2;" parent="1" vertex="1">
+                    <mxGeometry x="1000" y="595" width="175" height="110" as="geometry"/>
+                </mxCell>
+                <mxCell id="sched-desched" value="🔄 RECYCLING PLANT&amp;#xa;Descheduler&amp;#xa;&amp;#xa;CronJob/Deployment&amp;#xa;HighNodeUtilization:&amp;#xa;evicts from idle nodes&amp;#xa;Must pair w/ MostAlloc" style="shape=trapezoid;perimeter=trapezoidPerimeter;whiteSpace=wrap;html=1;fillColor=#E1BEE7;strokeColor=#8E24AA;fontSize=9;shadow=1;size=0.1;strokeWidth=2;" parent="1" vertex="1">
+                    <mxGeometry x="1200" y="590" width="175" height="110" as="geometry"/>
+                </mxCell>
+                <mxCell id="sched-profiles" value="📐 CITY PLANNING OFFICE — Custom Scheduler Profiles&amp;#xa;Multiple profiles per scheduler | spec.schedulerName selects | Tune scoring weights | Disable BalancedAllocation" style="shape=step;perimeter=stepPerimeter;whiteSpace=wrap;html=1;fillColor=#E0F7FA;strokeColor=#006064;fontSize=10;shadow=1;size=0.06;strokeWidth=2;" parent="1" vertex="1">
+                    <mxGeometry x="805" y="720" width="570" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="sched-recipe" value="🚀 BIN PACKING HIGHWAY: ❶ MostAllocated → ❷ Disable BalancedAlloc → ❸ Relax topology → ❹ Descheduler → ❺ Tune weights" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#69F0AE;strokeColor=#00C853;fontSize=11;fontStyle=1;shadow=1;strokeWidth=3;arcSize=30;" parent="1" vertex="1">
+                    <mxGeometry x="805" y="815" width="570" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="qos-zone" value="🏠 QoS HEIGHTS" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FCE4EC;strokeColor=#AD1457;verticalAlign=top;fontSize=16;fontStyle=1;fontColor=#880E4F;dashed=1;dashPattern=8 4;strokeWidth=3;arcSize=8;shadow=1;" parent="1" vertex="1">
+                    <mxGeometry x="1420" y="110" width="780" height="870" as="geometry"/>
+                </mxCell>
+                <mxCell id="qos-auto" value="🔍 QoS auto-assigned by kubelet: how you set requests &amp; limits determines your tier!" style="shape=hexagon;perimeter=hexagonPerimeter2;whiteSpace=wrap;html=1;fillColor=#FFF3E0;strokeColor=#E65100;fontSize=10;fontStyle=2;size=0.06;shadow=1;" parent="1" vertex="1">
+                    <mxGeometry x="1440" y="150" width="740" height="35" as="geometry"/>
+                </mxCell>
+                <mxCell id="qos-guaranteed" value="🏰 CASTLE&amp;#xa;GUARANTEED&amp;#xa;&amp;#xa;req == limits&amp;#xa;ALL containers&amp;#xa;CPU &amp;amp; memory&amp;#xa;&amp;#xa;oom_score: -997&amp;#xa;LAST evicted&amp;#xa;&amp;#xa;Most predictable&amp;#xa;Worst density&amp;#xa;SLA-bound services" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#A5D6A7;strokeColor=#1B5E20;fontSize=10;fontStyle=1;shadow=1;strokeWidth=3;arcSize=5;" parent="1" vertex="1">
+                    <mxGeometry x="1440" y="200" width="220" height="210" as="geometry"/>
+                </mxCell>
+                <mxCell id="qos-burstable" value="🏢 APARTMENT&amp;#xa;BURSTABLE&amp;#xa;&amp;#xa;At least one container&amp;#xa;has req or limit set&amp;#xa;but req ≠ limits&amp;#xa;&amp;#xa;oom_score: 2–999&amp;#xa;MIDDLE priority&amp;#xa;&amp;#xa;⭐ Sweet spot!&amp;#xa;Can burst when idle&amp;#xa;General workloads" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF59D;strokeColor=#F57F17;fontSize=10;fontStyle=1;shadow=1;strokeWidth=3;arcSize=5;" parent="1" vertex="1">
+                    <mxGeometry x="1690" y="195" width="220" height="210" as="geometry"/>
+                </mxCell>
+                <mxCell id="qos-besteffort" value="⛺ TENT&amp;#xa;BEST EFFORT&amp;#xa;&amp;#xa;NO req or limits&amp;#xa;on any container&amp;#xa;&amp;#xa;oom_score: 1000&amp;#xa;FIRST evicted&amp;#xa;&amp;#xa;Max density possible&amp;#xa;Least reliable&amp;#xa;Dev/test, batch jobs" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EF9A9A;strokeColor=#B71C1C;fontSize=10;fontStyle=1;shadow=1;strokeWidth=3;arcSize=5;dashed=1;dashPattern=4 2;" parent="1" vertex="1">
+                    <mxGeometry x="1940" y="200" width="220" height="210" as="geometry"/>
+                </mxCell>
+                <mxCell id="qos-eviction-sign" value="☠️ EVICTION COURTHOUSE" style="shape=process;whiteSpace=wrap;html=1;fillColor=#263238;strokeColor=#37474F;fontColor=#ECEFF1;fontSize=13;fontStyle=1;size=0.04;" parent="1" vertex="1">
+                    <mxGeometry x="1440" y="425" width="740" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="qos-eviction-flow" value="Eviction Order: ❶ BestEffort (always &#39;exceeds&#39; 0 req) → ❷ Burstable over req → ❸ Guaranteed/Burstable under req" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFCCBC;strokeColor=#BF360C;fontSize=11;fontStyle=1;shadow=1;arcSize=20;strokeWidth=2;" parent="1" vertex="1">
+                    <mxGeometry x="1440" y="460" width="740" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="qos-oom" value="🏛️ OOM COURTHOUSE&amp;#xa;&amp;#xa;oom_score_adj =&amp;#xa;min( max(2,&amp;#xa;  1000 − 1000×memReq/nodeMem&amp;#xa;), 999 )&amp;#xa;Higher = killed first" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fillColor=#E8EAF6;strokeColor=#283593;fontSize=10;shadow=1;fontFamily=monospace;size=0.1;strokeWidth=2;" parent="1" vertex="1">
+                    <mxGeometry x="1440" y="545" width="340" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="qos-priority" value="🏰 PRIORITY TOWER&amp;#xa;&amp;#xa;Priority checked FIRST&amp;#xa;then QoS within same tier&amp;#xa;Built-in: system-cluster-&amp;#xa;critical, system-node-critical&amp;#xa;Preemption evicts lower-pri" style="shape=step;perimeter=stepPerimeter;whiteSpace=wrap;html=1;fillColor=#E1BEE7;strokeColor=#6A1B9A;fontSize=10;shadow=1;size=0.1;strokeWidth=2;" parent="1" vertex="1">
+                    <mxGeometry x="1800" y="545" width="370" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="qos-pdb" value="🛡️ SHIELD WALL — Pod Disruption Budgets&amp;#xa;&amp;#xa;• Guards against VOLUNTARY disruptions (drain, upgrade, preemption)&amp;#xa;• Does NOT guard against OOM/node failure (involuntary)&amp;#xa;• minAvailable | maxUnavailable + selector&amp;#xa;• Strict PDBs block node scale-down → hurts bin packing!&amp;#xa;• Best: maxUnavailable=1 for stateless" style="shape=hexagon;perimeter=hexagonPerimeter2;whiteSpace=wrap;html=1;fillColor=#B2DFDB;strokeColor=#00695C;fontSize=10;shadow=1;align=left;spacingLeft=16;size=0.04;strokeWidth=2;" parent="1" vertex="1">
+                    <mxGeometry x="1440" y="660" width="740" height="120" as="geometry"/>
+                </mxCell>
+                <mxCell id="qos-density" value="💡 CITY DENSITY RULE: Guaranteed=no overcommit (worst density) | Burstable=controlled overcommit (BEST) | BestEffort=max density (most risk)&amp;#xa;Set req=P50 usage, lim=P99 → Burstable sweet spot" style="shape=callout;whiteSpace=wrap;html=1;fillColor=#FFF8E1;strokeColor=#FF8F00;fontSize=10;fontStyle=2;shadow=1;perimeter=calloutPerimeter;size=20;position=0.5;position2=0.5;base=30;" parent="1" vertex="1">
+                    <mxGeometry x="1440" y="800" width="740" height="70" as="geometry"/>
                 </mxCell>
             </root>
         </mxGraphModel>

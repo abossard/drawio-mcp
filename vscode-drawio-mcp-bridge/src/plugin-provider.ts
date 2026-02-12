@@ -314,6 +314,7 @@ export class DrawioPluginProvider {
             case 'layout':      doLayout(msg.data); break;
             case 'graph-edit':  doGraphEdit(msg); break;
             case 'graph-read':  doGraphRead(msg); break;
+            case 'screenshot':  doScreenshot(msg); break;
         }
     }
 
@@ -729,6 +730,102 @@ export class DrawioPluginProvider {
             }));
             addLog('\\u2B06 sent graph XML (' + xml.length + ' chars)', '#64B5F6');
         } catch (err) {
+            sendResult(msg.requestId, false, null, err.message || String(err));
+        }
+    }
+
+    // ── SCREENSHOT: capture diagram as PNG image ──
+    function doScreenshot(msg) {
+        var graph = getGraph();
+        if (!graph || !ws || ws.readyState !== 1) {
+            sendResult(msg.requestId, false, null, 'No graph available');
+            return;
+        }
+
+        try {
+            var scale = (msg.data && msg.data.scale) ? msg.data.scale : 1;
+            var border = (msg.data && msg.data.border) ? msg.data.border : 10;
+
+            // Get SVG from mxGraph
+            var bgColor = graph.background || '#ffffff';
+            var svgRoot = graph.getSvg(bgColor, scale, border);
+            var svgXml = new XMLSerializer().serializeToString(svgRoot);
+
+            // Read dimensions from SVG attributes
+            var svgWidth = Math.ceil(parseFloat(svgRoot.getAttribute('width')) || 800);
+            var svgHeight = Math.ceil(parseFloat(svgRoot.getAttribute('height')) || 600);
+
+            // Convert SVG to PNG via canvas
+            var canvas = document.createElement('canvas');
+            canvas.width = svgWidth;
+            canvas.height = svgHeight;
+            var ctx = canvas.getContext('2d');
+
+            var img = new Image();
+            // Use base64 data URI to avoid tainted canvas issues
+            var svgBase64 = btoa(unescape(encodeURIComponent(svgXml)));
+            var svgDataUrl = 'data:image/svg+xml;base64,' + svgBase64;
+
+            img.onload = function() {
+                // Fill white background
+                ctx.fillStyle = bgColor;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.drawImage(img, 0, 0);
+
+                try {
+                    var pngDataUrl = canvas.toDataURL('image/png');
+                    var pngBase64 = pngDataUrl.replace(/^data:image\\/png;base64,/, '');
+
+                    ws.send(JSON.stringify({
+                        type: 'screenshot-result',
+                        requestId: msg.requestId,
+                        success: true,
+                        data: {
+                            imageData: pngBase64,
+                            mimeType: 'image/png',
+                            width: canvas.width,
+                            height: canvas.height
+                        }
+                    }));
+                    addLog('\\uD83D\\uDCF8 screenshot PNG ' + canvas.width + '\\u00d7' + canvas.height, '#64B5F6');
+                } catch (canvasErr) {
+                    // Canvas tainted — fall back to SVG
+                    ws.send(JSON.stringify({
+                        type: 'screenshot-result',
+                        requestId: msg.requestId,
+                        success: true,
+                        data: {
+                            imageData: svgBase64,
+                            mimeType: 'image/svg+xml',
+                            width: svgWidth,
+                            height: svgHeight
+                        }
+                    }));
+                    addLog('\\uD83D\\uDCF8 screenshot SVG fallback ' + svgWidth + '\\u00d7' + svgHeight, '#FF9800');
+                }
+                updateOverlayCount();
+            };
+
+            img.onerror = function() {
+                // Image load failed — return SVG directly
+                ws.send(JSON.stringify({
+                    type: 'screenshot-result',
+                    requestId: msg.requestId,
+                    success: true,
+                    data: {
+                        imageData: svgBase64,
+                        mimeType: 'image/svg+xml',
+                        width: svgWidth,
+                        height: svgHeight
+                    }
+                }));
+                addLog('\\uD83D\\uDCF8 screenshot SVG fallback ' + svgWidth + '\\u00d7' + svgHeight, '#FF9800');
+                updateOverlayCount();
+            };
+
+            img.src = svgDataUrl;
+        } catch (err) {
+            addLog('\\u274C screenshot error: ' + (err.message || err), '#EF5350');
             sendResult(msg.requestId, false, null, err.message || String(err));
         }
     }

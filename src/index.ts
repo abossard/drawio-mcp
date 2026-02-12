@@ -212,6 +212,9 @@ LAYOUT TIPS for readable diagrams:
           text += `\n  [${w.severity}] ${w.message}`;
           if (w.suggestion) text += `\n    → ${w.suggestion}`;
         }
+        if (result.layoutWarnings.length >= 3) {
+          text += '\n\n💡 Tip: With this many layout warnings, consider using screenshot_diagram to visually inspect the diagram. A vision model can identify readability problems more effectively.';
+        }
       }
       return {
         content: [{ type: 'text', text }],
@@ -355,6 +358,7 @@ LAYOUT BEST PRACTICES:
 
         // Detect edge routing issues in the live-edit path too
         const routingSuggestions = detectEdgeRoutingIssues(preparedNodes, preparedEdges);
+        const totalWarnings = routingSuggestions.length;
         if (routingSuggestions.length > 0) {
           lines.push('');
           lines.push(`🔀 Edge routing suggestions (${routingSuggestions.length}):`);
@@ -364,6 +368,11 @@ LAYOUT BEST PRACTICES:
               lines.push(`    → ${sug}`);
             }
           }
+        }
+
+        if (totalWarnings >= 3) {
+          lines.push('');
+          lines.push('💡 Tip: With this many routing issues, consider using screenshot_diagram to visually inspect the result. A vision model can spot overlapping edges and readability problems more effectively.');
         }
 
         return { content: [{ type: 'text', text: lines.join('\n') }] };
@@ -403,6 +412,11 @@ LAYOUT BEST PRACTICES:
             lines.push(`    → ${sug}`);
           }
         }
+      }
+      const totalFileWarnings = result.layoutWarnings.length + result.edgeRoutingSuggestions.length;
+      if (totalFileWarnings >= 3) {
+        lines.push('');
+        lines.push('💡 Tip: With this many layout/routing issues, consider using screenshot_diagram to visually inspect the result. A vision model can spot overlapping elements and readability problems more effectively.');
       }
       return { content: [{ type: 'text', text: lines.join('\n') }] };
     } catch (err: any) {
@@ -748,6 +762,60 @@ server.tool(
 );
 
 server.tool(
+  'screenshot_diagram',
+  'Capture a screenshot (PNG image) of the current draw.io diagram as it appears in the editor. Returns the image so a vision-capable model can analyze the visual layout, styling, and readability. Requires the diagram to be open in VS Code with the companion extension connected.',
+  {
+    filePath: z.string().describe('Path to the .drawio file (must be open in VS Code)'),
+    scale: z.number().optional().describe('Export scale factor (default: 1). Use 2 for higher resolution.'),
+    border: z.number().optional().describe('Border padding in pixels around the diagram (default: 10)'),
+  },
+  async ({ filePath, scale, border }) => {
+    const resolvedPath = path.resolve(filePath);
+
+    if (!hasConnectedClients()) {
+      return {
+        content: [{ type: 'text', text: 'No companion extension connected. The screenshot tool requires the diagram to be open in VS Code with the drawio-mcp-bridge extension.' }],
+        isError: true,
+      };
+    }
+
+    try {
+      const requestId = generateId();
+      const response = await sendToDrawioAndWait({
+        type: 'screenshot',
+        requestId,
+        filePath: resolvedPath,
+        data: {
+          scale: scale ?? 1,
+          border: border ?? 10,
+        },
+      }, 30000); // 30s timeout for large diagrams
+
+      if (!response.success) {
+        return { content: [{ type: 'text', text: `Screenshot failed: ${response.error}` }], isError: true };
+      }
+
+      const { imageData, mimeType, width, height } = response.data;
+      return {
+        content: [
+          {
+            type: 'image',
+            data: imageData,
+            mimeType: mimeType || 'image/png',
+          },
+          {
+            type: 'text',
+            text: `Screenshot captured: ${width}×${height}px (${mimeType || 'image/png'})\nFile: ${filePath}`,
+          },
+        ],
+      };
+    } catch (err: any) {
+      return { content: [{ type: 'text', text: `Error: ${err.message}` }], isError: true };
+    }
+  }
+);
+
+server.tool(
   'check_connection',
   'Check the WebSocket sidecar connection status. Reports whether the sidecar server is running and how many companion extension / draw.io plugin clients are connected. Useful for diagnosing live-edit features.',
   {},
@@ -836,6 +904,10 @@ Call this after building/modifying a diagram to detect readability problems. Use
         lines.push(`\n[${w.severity.toUpperCase()}] ${w.message}`);
         if (w.suggestion) lines.push(`  → ${w.suggestion}`);
         lines.push(`  Elements: ${w.elementIds.join(', ')}`);
+      }
+      if (warnings.length >= 3) {
+        lines.push('');
+        lines.push('💡 Tip: With this many layout issues, consider using screenshot_diagram to visually inspect the diagram. A vision model can analyze the screenshot to identify overlapping elements, misaligned nodes, and readability problems that are hard to detect from structure alone.');
       }
       return { content: [{ type: 'text', text: lines.join('\n') }] };
     } catch (err: any) {

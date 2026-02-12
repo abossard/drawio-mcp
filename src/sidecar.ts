@@ -10,7 +10,7 @@ function log(msg: string): void {
 }
 
 export interface SidecarMessage {
-  type: 'cursor' | 'selection' | 'highlight' | 'unhighlight' | 'status' | 'spinner' | 'layout' | 'graph-edit' | 'graph-read';
+  type: 'cursor' | 'selection' | 'highlight' | 'unhighlight' | 'status' | 'spinner' | 'layout' | 'graph-edit' | 'graph-read' | 'screenshot';
   data: any;
   /** Optional: scope this message to draw.io clients editing this file */
   filePath?: string;
