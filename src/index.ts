@@ -18,9 +18,14 @@ import {
   redoLastOperation,
   batchAddElements,
   checkLayout,
+  generateId,
+  validateShape,
+  validateEdgeStyle,
+  validateConnectionPoint,
+  buildConnectionStyle,
 } from './drawio.js';
-import { SHAPE_STYLES, EDGE_STYLES, CONNECTION_POINTS } from './styles.js';
-import { startSidecar, stopSidecar, sendToDrawio, hasConnectedClients, getClientCount } from './sidecar.js';
+import { SHAPE_STYLES, EDGE_STYLES, CONNECTION_POINTS, DEFAULT_GEOMETRY } from './styles.js';
+import { startSidecar, stopSidecar, sendToDrawio, hasConnectedClients, getClientCount, hasConnectedDrawioClient, sendToDrawioAndWait } from './sidecar.js';
 
 const server = new McpServer({
   name: 'drawio-mcp',
@@ -84,6 +89,42 @@ server.tool(
   },
   async ({ filePath, label, shape, style, x, y, width, height, pageIndex, id }) => {
     try {
+      const resolvedPath = path.resolve(filePath);
+
+      // Live editing: if the diagram is open in an editor, edit via mxGraph API
+      if (hasConnectedDrawioClient(resolvedPath)) {
+        validateShape(shape);
+        let computedStyle = style || '';
+        if (shape && SHAPE_STYLES[shape]) {
+          computedStyle = SHAPE_STYLES[shape] + computedStyle;
+        } else if (!computedStyle) {
+          computedStyle = SHAPE_STYLES.roundedRectangle;
+        }
+        const nodeId = id || generateId();
+        const requestId = generateId();
+
+        const response = await sendToDrawioAndWait({
+          type: 'graph-edit',
+          requestId,
+          filePath: resolvedPath,
+          data: {
+            operation: 'addNode',
+            params: {
+              id: nodeId, label, style: computedStyle,
+              x: x ?? DEFAULT_GEOMETRY.x, y: y ?? DEFAULT_GEOMETRY.y,
+              width: width ?? DEFAULT_GEOMETRY.width, height: height ?? DEFAULT_GEOMETRY.height,
+            },
+          },
+        });
+
+        if (!response.success) {
+          return { content: [{ type: 'text', text: `Error (live): ${response.error}` }], isError: true };
+        }
+        const resultId = response.data?.id || nodeId;
+        return { content: [{ type: 'text', text: `Added node "${label}" with ID: ${resultId} (live edit)` }] };
+      }
+
+      // File I/O fallback
       const result = await addNode(filePath, { label, shape, style, x, y, width, height, pageIndex, id });
       return {
         content: [{ type: 'text', text: `Added node "${label}" with ID: ${result.id}` }],
@@ -123,6 +164,44 @@ LAYOUT TIPS for readable diagrams:
   },
   async ({ filePath, sourceId, targetId, label, edgeStyle, style, exitPoint, entryPoint, pageIndex, id }) => {
     try {
+      const resolvedPath = path.resolve(filePath);
+
+      // Live editing path
+      if (hasConnectedDrawioClient(resolvedPath)) {
+        validateEdgeStyle(edgeStyle);
+        validateConnectionPoint(exitPoint, 'exitPoint');
+        validateConnectionPoint(entryPoint, 'entryPoint');
+
+        let computedStyle = style || '';
+        if (edgeStyle && EDGE_STYLES[edgeStyle]) {
+          computedStyle = EDGE_STYLES[edgeStyle] + computedStyle;
+        }
+        computedStyle += buildConnectionStyle(exitPoint, entryPoint);
+
+        const edgeId = id || generateId();
+        const requestId = generateId();
+
+        const response = await sendToDrawioAndWait({
+          type: 'graph-edit',
+          requestId,
+          filePath: resolvedPath,
+          data: {
+            operation: 'addEdge',
+            params: {
+              id: edgeId, sourceId, targetId,
+              label: label || '', style: computedStyle,
+            },
+          },
+        });
+
+        if (!response.success) {
+          return { content: [{ type: 'text', text: `Error (live): ${response.error}` }], isError: true };
+        }
+        const resultId = response.data?.id || edgeId;
+        return { content: [{ type: 'text', text: `Added edge from ${sourceId} → ${targetId} with ID: ${resultId} (live edit)` }] };
+      }
+
+      // File I/O fallback
       const result = await addEdge(filePath, { sourceId, targetId, label, edgeStyle, style, exitPoint, entryPoint, pageIndex, id });
       let text = `Added edge from ${sourceId} → ${targetId} with ID: ${result.id}`;
       if (result.layoutWarnings.length > 0) {
@@ -187,6 +266,79 @@ LAYOUT BEST PRACTICES:
   },
   async ({ filePath, nodes, edges }) => {
     try {
+      const resolvedPath = path.resolve(filePath);
+
+      // Live editing path
+      if (hasConnectedDrawioClient(resolvedPath)) {
+        // Pre-validate and compute styles on MCP side
+        const preparedNodes = (nodes || []).map(n => {
+          validateShape(n.shape);
+          let s = n.style || '';
+          if (n.shape && SHAPE_STYLES[n.shape]) {
+            s = SHAPE_STYLES[n.shape] + s;
+          } else if (!s) {
+            s = SHAPE_STYLES.roundedRectangle;
+          }
+          return {
+            id: n.id || generateId(),
+            label: n.label,
+            style: s,
+            x: n.x ?? DEFAULT_GEOMETRY.x,
+            y: n.y ?? DEFAULT_GEOMETRY.y,
+            width: n.width ?? DEFAULT_GEOMETRY.width,
+            height: n.height ?? DEFAULT_GEOMETRY.height,
+          };
+        });
+        const preparedEdges = (edges || []).map(e => {
+          validateEdgeStyle(e.edgeStyle);
+          validateConnectionPoint(e.exitPoint, 'exitPoint');
+          validateConnectionPoint(e.entryPoint, 'entryPoint');
+          let s = e.style || '';
+          if (e.edgeStyle && EDGE_STYLES[e.edgeStyle]) {
+            s = EDGE_STYLES[e.edgeStyle] + s;
+          }
+          s += buildConnectionStyle(e.exitPoint, e.entryPoint);
+          return {
+            id: e.id || generateId(),
+            sourceId: e.sourceId,
+            targetId: e.targetId,
+            label: e.label || '',
+            style: s,
+          };
+        });
+
+        const requestId = generateId();
+        const response = await sendToDrawioAndWait({
+          type: 'graph-edit',
+          requestId,
+          filePath: resolvedPath,
+          data: {
+            operation: 'batchAdd',
+            params: { nodes: preparedNodes, edges: preparedEdges },
+          },
+        });
+
+        if (!response.success) {
+          return { content: [{ type: 'text', text: `Error (live): ${response.error}` }], isError: true };
+        }
+
+        const rNodes = response.data?.nodeIds || [];
+        const rEdges = response.data?.edgeIds || [];
+        const lines: string[] = [
+          `Batch added ${rNodes.length} node(s) and ${rEdges.length} edge(s) (live edit).`,
+        ];
+        if (rNodes.length > 0) {
+          lines.push('Nodes:');
+          for (const n of rNodes) lines.push(`  • "${n.label}" → ID: ${n.id}`);
+        }
+        if (rEdges.length > 0) {
+          lines.push('Edges:');
+          for (const e of rEdges) lines.push(`  → ${e.sourceId} → ${e.targetId} (ID: ${e.id})`);
+        }
+        return { content: [{ type: 'text', text: lines.join('\n') }] };
+      }
+
+      // File I/O fallback
       const result = await batchAddElements(filePath, { nodes, edges });
       const lines: string[] = [
         `Batch added ${result.nodeIds.length} node(s) and ${result.edgeIds.length} edge(s).`,
@@ -233,6 +385,27 @@ server.tool(
   },
   async ({ filePath, elementId, label, style, x, y, width, height }) => {
     try {
+      const resolvedPath = path.resolve(filePath);
+
+      // Live editing path
+      if (hasConnectedDrawioClient(resolvedPath)) {
+        const requestId = generateId();
+        const response = await sendToDrawioAndWait({
+          type: 'graph-edit',
+          requestId,
+          filePath: resolvedPath,
+          data: {
+            operation: 'updateElement',
+            params: { elementId, label, style, x, y, width, height },
+          },
+        });
+        if (!response.success) {
+          return { content: [{ type: 'text', text: `Error (live): ${response.error}` }], isError: true };
+        }
+        return { content: [{ type: 'text', text: `Updated element ${elementId} (live edit)` }] };
+      }
+
+      // File I/O fallback
       const result = await updateElement(filePath, elementId, { label, style, x, y, width, height });
       if (result.success) {
         return { content: [{ type: 'text', text: `Updated element ${elementId} (changeId: ${result.changeId})` }] };
@@ -253,6 +426,27 @@ server.tool(
   },
   async ({ filePath, elementId }) => {
     try {
+      const resolvedPath = path.resolve(filePath);
+
+      // Live editing path
+      if (hasConnectedDrawioClient(resolvedPath)) {
+        const requestId = generateId();
+        const response = await sendToDrawioAndWait({
+          type: 'graph-edit',
+          requestId,
+          filePath: resolvedPath,
+          data: {
+            operation: 'removeElement',
+            params: { elementId },
+          },
+        });
+        if (!response.success) {
+          return { content: [{ type: 'text', text: `Error (live): ${response.error}` }], isError: true };
+        }
+        return { content: [{ type: 'text', text: `Removed element ${elementId} (live edit)` }] };
+      }
+
+      // File I/O fallback
       const result = await removeElement(filePath, elementId);
       if (result.success) {
         return { content: [{ type: 'text', text: `Removed element ${elementId} (changeId: ${result.changeId})` }] };
@@ -369,27 +563,20 @@ server.tool(
     filePath: z.string().describe('Path to the .drawio file'),
     elementIds: z.array(z.string()).describe('IDs of elements to highlight'),
     color: z.string().optional().describe('Highlight color (default: "#FFD700" gold)'),
-    durationMs: z.number().optional().describe('Duration of highlight in ms (default: 1500)'),
+    durationMs: z.number().optional().describe('Duration of highlight in ms (default: 20000)'),
   },
   async ({ filePath, elementIds, color, durationMs }) => {
     const highlightColor = color || '#FFD700';
-    const duration = durationMs || 1500;
+    const duration = durationMs || 20000;
 
     try {
       // Prefer sidecar/companion extension path (non-destructive overlay)
       if (hasConnectedClients()) {
         sendToDrawio({
           type: 'highlight',
-          data: { cellIds: elementIds, color: highlightColor },
+          data: { cellIds: elementIds, color: highlightColor, duration },
+          filePath: path.resolve(filePath),
         });
-
-        // Schedule unhighlight
-        setTimeout(() => {
-          sendToDrawio({
-            type: 'unhighlight',
-            data: { cellIds: elementIds },
-          });
-        }, duration);
 
         return {
           content: [{ type: 'text', text: `Highlighting ${elementIds.length} element(s) via companion extension for ${duration}ms` }],
@@ -472,12 +659,13 @@ server.tool(
   'show_ai_cursor',
   'Show an AI cursor indicator at a specific position in the draw.io diagram. Requires the companion VS Code extension to be connected.',
   {
+    filePath: z.string().optional().describe('Path to the .drawio file (scopes cursor to the correct editor)'),
     x: z.number().describe('X position in diagram coordinates'),
     y: z.number().describe('Y position in diagram coordinates'),
     label: z.string().optional().describe('Label next to cursor (default: "🤖 AI")'),
     color: z.string().optional().describe('Cursor color hex (default: "#D13913")'),
   },
-  async ({ x, y, label, color }) => {
+  async ({ filePath, x, y, label, color }) => {
     if (!hasConnectedClients()) {
       return { content: [{ type: 'text', text: 'No companion extension connected. Install drawio-mcp-bridge in VS Code.' }], isError: true };
     }
@@ -488,6 +676,7 @@ server.tool(
         label: label || '🤖 AI',
         color: color || '#D13913',
       },
+      filePath: filePath ? path.resolve(filePath) : undefined,
     });
     return { content: [{ type: 'text', text: `AI cursor shown at (${x}, ${y})` }] };
   }
@@ -497,10 +686,11 @@ server.tool(
   'show_ai_selection',
   'Highlight specific cells in the draw.io diagram as being selected/edited by AI. Shows a colored overlay around the cells. Requires the companion VS Code extension.',
   {
+    filePath: z.string().optional().describe('Path to the .drawio file (scopes selection to the correct editor)'),
     cellIds: z.array(z.string()).describe('IDs of cells to show as AI-selected'),
     color: z.string().optional().describe('Selection overlay color (default: "#D13913")'),
   },
-  async ({ cellIds, color }) => {
+  async ({ filePath, cellIds, color }) => {
     if (!hasConnectedClients()) {
       return { content: [{ type: 'text', text: 'No companion extension connected. Install drawio-mcp-bridge in VS Code.' }], isError: true };
     }
@@ -510,6 +700,7 @@ server.tool(
         cellIds,
         color: color || '#D13913',
       },
+      filePath: filePath ? path.resolve(filePath) : undefined,
     });
     return { content: [{ type: 'text', text: `AI selection shown on ${cellIds.length} cell(s): ${cellIds.join(', ')}` }] };
   }
@@ -521,41 +712,52 @@ server.tool(
   {},
   async () => {
     const counts = getClientCount();
-    const sidecarRunning = counts.extensions >= 0; // if getClientCount works, sidecar is up
     const totalClients = counts.extensions + counts.drawioPlugins;
 
     const lines: string[] = [];
-    lines.push(`Sidecar WebSocket server: ✅ running on ws://127.0.0.1:${process.env.DRAWIO_MCP_SIDECAR_PORT || '9219'}`);
-    lines.push(`Connected clients: ${totalClients}`);
-    lines.push(`  • Extension clients (bridge): ${counts.extensions}`);
-    lines.push(`  • Draw.io plugin clients: ${counts.drawioPlugins}`);
-    lines.push('');
 
-    if (totalClients === 0) {
-      lines.push('⚠️ No clients connected. Live features (highlight, cursor, status, layout) will not work.');
+    if (counts.relayMode) {
+      lines.push(`Sidecar mode: 🔄 RELAY — connected as client to existing sidecar on ws://127.0.0.1:${process.env.DRAWIO_MCP_SIDECAR_PORT || '9219'}`);
+      lines.push('Another MCP server instance owns the sidecar port. This process relays messages through it.');
       lines.push('');
-      lines.push('To enable live editing, install the companion extensions:');
-      lines.push('');
-      lines.push('Step 1 — Install the draw.io VS Code extension:');
-      lines.push('  code --install-extension hediet.vscode-drawio');
-      lines.push('');
-      lines.push('Step 2 — Build & install the bridge extension (from the drawio-mcp repo root):');
-      lines.push('  cd vscode-drawio-mcp-bridge');
-      lines.push('  npm install && npm run build');
-      lines.push('  npx @vscode/vsce package --allow-missing-repository');
-      lines.push('  code --install-extension ./drawio-mcp-bridge-0.1.0.vsix');
-      lines.push('');
-      lines.push('Step 3 — Reload VS Code (Cmd/Ctrl+Shift+P → "Developer: Reload Window")');
-      lines.push('Step 4 — Open any .drawio file — the bridge auto-connects to ws://127.0.0.1:9219');
-      lines.push('');
-      lines.push('A small activity log panel will appear in the top-left of the draw.io editor when connected.');
+      lines.push('✅ Live editing features are available via relay!');
+      lines.push('  → Messages (highlight, cursor, layout, etc.) are forwarded to the primary sidecar.');
     } else {
-      lines.push('✅ Live editing features are available!');
-      if (counts.drawioPlugins > 0) {
-        lines.push('  → draw.io plugin connected — highlight, cursor, selection, layout all work');
+      lines.push(`Sidecar WebSocket server: ✅ running on ws://127.0.0.1:${process.env.DRAWIO_MCP_SIDECAR_PORT || '9219'}`);
+      lines.push(`Connected clients: ${totalClients}`);
+      lines.push(`  • Extension clients (bridge): ${counts.extensions}`);
+      lines.push(`  • Draw.io plugin clients: ${counts.drawioPlugins}`);
+      if (counts.registeredFiles.length > 0) {
+        lines.push(`  • Registered files: ${counts.registeredFiles.join(', ')}`);
       }
-      if (counts.extensions > 0) {
-        lines.push('  → Bridge extension connected — status messages and spinner work');
+      lines.push('');
+
+      if (totalClients === 0) {
+        lines.push('⚠️ No clients connected. Live features (highlight, cursor, status, layout) will not work.');
+        lines.push('');
+        lines.push('To enable live editing, install the companion extensions:');
+        lines.push('');
+        lines.push('Step 1 — Install the draw.io VS Code extension:');
+        lines.push('  code --install-extension hediet.vscode-drawio');
+        lines.push('');
+        lines.push('Step 2 — Build & install the bridge extension (from the drawio-mcp repo root):');
+        lines.push('  cd vscode-drawio-mcp-bridge');
+        lines.push('  npm install && npm run build');
+        lines.push('  npx @vscode/vsce package --allow-missing-repository');
+        lines.push('  code --install-extension ./drawio-mcp-bridge-0.1.0.vsix');
+        lines.push('');
+        lines.push('Step 3 — Reload VS Code (Cmd/Ctrl+Shift+P → "Developer: Reload Window")');
+        lines.push('Step 4 — Open any .drawio file — the bridge auto-connects to ws://127.0.0.1:9219');
+        lines.push('');
+        lines.push('A small activity log panel will appear in the top-left of the draw.io editor when connected.');
+      } else {
+        lines.push('✅ Live editing features are available!');
+        if (counts.drawioPlugins > 0) {
+          lines.push('  → draw.io plugin connected — highlight, cursor, selection, layout all work');
+        }
+        if (counts.extensions > 0) {
+          lines.push('  → Bridge extension connected — status messages and spinner work');
+        }
       }
     }
 
@@ -614,12 +816,13 @@ Available layouts:
 
 After layout, draw.io saves the updated positions back to the .drawio file automatically.`,
   {
+    filePath: z.string().optional().describe('Path to the .drawio file (scopes layout to the correct editor)'),
     layout: z.enum(['hierarchical', 'organic', 'tree', 'radialTree', 'circle']).describe('Layout algorithm to apply'),
     direction: z.enum(['vertical', 'horizontal']).optional().describe('Layout direction (default: vertical). Only applies to hierarchical and tree layouts.'),
     spacing: z.number().optional().describe('Primary spacing between nodes in px (default: layout-dependent, typically 30-50)'),
     interRankSpacing: z.number().optional().describe('Spacing between ranks/layers in px (default: layout-dependent). Only for hierarchical and tree.'),
   },
-  async ({ layout, direction, spacing, interRankSpacing }) => {
+  async ({ filePath, layout, direction, spacing, interRankSpacing }) => {
     if (!hasConnectedClients()) {
       return {
         content: [{
@@ -638,6 +841,7 @@ After layout, draw.io saves the updated positions back to the .drawio file autom
         spacing: spacing,
         interRankSpacing: interRankSpacing,
       },
+      filePath: filePath ? path.resolve(filePath) : undefined,
     });
 
     return {
@@ -906,13 +1110,13 @@ async function main() {
   }
 
   await server.connect(transport);
-  console.error('drawio-mcp server started on stdio');
+  console.error(`[drawio-mcp pid:${process.pid}] server started on stdio — sidecar port ${sidecarPort}`);
 
   process.on('SIGINT', () => { stopSidecar(); process.exit(0); });
   process.on('SIGTERM', () => { stopSidecar(); process.exit(0); });
 }
 
 main().catch((err) => {
-  console.error('Fatal error:', err);
+  console.error(`[drawio-mcp pid:${process.pid}] fatal error:`, err);
   process.exit(1);
 });

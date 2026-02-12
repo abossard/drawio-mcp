@@ -35,6 +35,8 @@ type FileChangeCallback = (filePath: string) => void;
 const fileWatchers = new Map<string, fs.FSWatcher>();
 const changeCallbacks: FileChangeCallback[] = [];
 
+
+
 export function onDiagramFileChanged(callback: FileChangeCallback): void {
   changeCallbacks.push(callback);
 }
@@ -181,7 +183,7 @@ function getExistingIds(xml: string): Set<string> {
 }
 
 /** Validate that a shape name is known */
-function validateShape(shape: string | undefined): void {
+export function validateShape(shape: string | undefined): void {
   if (shape !== undefined && !(shape in SHAPE_STYLES)) {
     const available = Object.keys(SHAPE_STYLES).join(', ');
     throw new DiagramValidationError(
@@ -191,7 +193,7 @@ function validateShape(shape: string | undefined): void {
 }
 
 /** Validate that an edge style name is known */
-function validateEdgeStyle(edgeStyle: string | undefined): void {
+export function validateEdgeStyle(edgeStyle: string | undefined): void {
   if (edgeStyle !== undefined && !(edgeStyle in EDGE_STYLES)) {
     const available = Object.keys(EDGE_STYLES).join(', ');
     throw new DiagramValidationError(
@@ -228,7 +230,7 @@ function validateEdgeTargets(
 }
 
 /** Validate connection point name (if provided) */
-function validateConnectionPoint(point: string | undefined, paramName: string): void {
+export function validateConnectionPoint(point: string | undefined, paramName: string): void {
   if (point !== undefined && !(point in CONNECTION_POINTS)) {
     const available = Object.keys(CONNECTION_POINTS).join(', ');
     throw new DiagramValidationError(
@@ -238,7 +240,7 @@ function validateConnectionPoint(point: string | undefined, paramName: string): 
 }
 
 /** Build exit/entry style fragments from connection point names */
-function buildConnectionStyle(
+export function buildConnectionStyle(
   exitPoint?: string,
   entryPoint?: string
 ): string {
@@ -255,7 +257,7 @@ function buildConnectionStyle(
 }
 
 /** Generate a unique ID for new cells */
-function generateId(): string {
+export function generateId(): string {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
   let result = '';
   for (let i = 0; i < 20; i++) {
@@ -1430,13 +1432,17 @@ function buildMovementCandidates(
 
 // --- Utility functions ---
 
-function escapeXml(str: string): string {
+export function escapeXml(str: string): string {
   return str
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
-    .replace(/'/g, '&apos;');
+    .replace(/'/g, '&apos;')
+    .replace(/[^\t\n\r\x20-\x7E]/gu, (ch) => {
+      const cp = ch.codePointAt(0)!;
+      return `&#x${cp.toString(16).toUpperCase()};`;
+    });
 }
 
 function escapeRegex(str: string): string {

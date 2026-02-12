@@ -21,6 +21,7 @@ import {
   DiagramValidationError,
   checkLayout,
   analyzePageLayout,
+  escapeXml,
 } from '../drawio.js';
 
 let tmpDir: string;
@@ -1054,5 +1055,45 @@ describe('validation', () => {
       const xml = await fs.readFile(filePath, 'utf8');
       expect(xml).toContain('labelBackgroundColor');
     });
+  });
+});
+
+// ── escapeXml ──────────────────────────────────────────────────────────
+
+describe('escapeXml', () => {
+  it('should escape basic XML entities', () => {
+    expect(escapeXml('a & b')).toBe('a &amp; b');
+    expect(escapeXml('<tag>')).toBe('&lt;tag&gt;');
+    expect(escapeXml('"quoted"')).toBe('&quot;quoted&quot;');
+    expect(escapeXml("it's")).toBe('it&apos;s');
+  });
+
+  it('should escape Unicode arrows to numeric character references', () => {
+    expect(escapeXml('A → B')).toBe('A &#x2192; B');
+    expect(escapeXml('A ← B')).toBe('A &#x2190; B');
+  });
+
+  it('should escape emoji to numeric character references', () => {
+    const result = escapeXml('🤖 AI');
+    expect(result).toBe('&#x1F916; AI');
+    expect(result).not.toContain('🤖');
+  });
+
+  it('should preserve ASCII printable characters', () => {
+    expect(escapeXml('Hello World 123!')).toBe('Hello World 123!');
+  });
+
+  it('should preserve tabs and newlines (valid in XML)', () => {
+    expect(escapeXml('a\tb\nc')).toBe('a\tb\nc');
+  });
+
+  it('should produce valid XML when used in node labels', async () => {
+    const filePath = path.join(tmpDir, 'unicode-test.drawio');
+    await createDiagramFile(filePath);
+    await addNode(filePath, { label: 'ts8 → ts9', id: 'arrow-test' });
+    const xml = await fs.readFile(filePath, 'utf8');
+    // Should be XML-escaped, not raw Unicode
+    expect(xml).toContain('&#x2192;');
+    expect(xml).not.toContain('→');
   });
 });

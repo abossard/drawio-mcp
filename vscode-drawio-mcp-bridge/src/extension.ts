@@ -68,7 +68,7 @@ export function activate(context: vscode.ExtensionContext) {
     return {
         drawioExtensionV1: {
             getDrawioPlugins: async (_context: { uri: vscode.Uri }) => {
-                return pluginProvider.getPlugins();
+                return pluginProvider.getPlugins(_context.uri);
             },
         },
     };
