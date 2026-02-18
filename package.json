@@ -30,7 +30,7 @@
   "license": "MIT",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.12.1",
-    "fast-xml-parser": "^5.2.3",
+    "fast-xml-parser": "^5.3.6",
     "ws": "^8.19.0",
     "zod": "^3.25.67"
   },
